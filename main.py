@@ -6,11 +6,11 @@ from register import Register, Flag_register
 from pipeline_units import bus_interface_unit, execution_unit
 from cpu import CPU
 
-MEMORY_SPACE = 1000
-CACHE_SPACE = 300
-PROGRAM_BEGIN_LOCATION = 200
-PROGRAM_END_LOCATION = 499
-INSTRUCTION_QUEUE_SIZE = 6
+MEMORY_SPACE = 1000     # 内存空间
+CACHE_SPACE = 300       # 缓存大小
+PROGRAM_BEGIN_LOCATION = 200  # 程序加载起始位置
+PROGRAM_END_LOCATION = 499    # 程序加载结束位置
+INSTRUCTION_QUEUE_SIZE = 6  # 
 
 
 def main():

@@ -24,7 +24,7 @@ class bus_interface_unit(object):
         # print(self.cache_memory.read_single_location(0))
 
         # 模仿8086取指机制，queue中少了2条及以上指令便取指
-        if self.instruction_queue.qsize() <= self.instruction_queue.maxsize-2:
+        if self.instruction_queue.qsize() <= self.instruction_queue.maxsize - 2:
             self.fill_instruction_queue()
     
     def flush_pipeline(self):
