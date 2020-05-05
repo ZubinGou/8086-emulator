@@ -2,15 +2,19 @@ import re
 import sys
 import queue
 from memory import Memory, Cache_memory
-from register import Register, Flag_register
+from register import Register_file
 from pipeline_units import bus_interface_unit, execution_unit
 from cpu import CPU
 
-MEMORY_SPACE = 1000     # 内存空间
-CACHE_SPACE = 300       # 缓存大小
-PROGRAM_BEGIN_LOCATION = 200  # 程序加载起始位置
-PROGRAM_END_LOCATION = 499    # 程序加载结束位置
-INSTRUCTION_QUEUE_SIZE = 6  # 
+MEMORY_SIZE = int('FFFFF', 16)  # 内存空间大小
+DATA_SEGMENT = int('20000', 16) # beginning of data segment
+CODE_SEGMENT = int('30000', 16) # beginning of data segment
+STACK_SEGMENT = int('50000', 16) # beginning of data segment
+EXTRA_SEGMENT = int('70000', 16) # beginning of data segment
+SEGMENT_SIZE = int('10000', 16) # 段长度均为最大长度64kB（10000H）
+
+CACHE_SIZE = int('10000', 16)  # 缓存大小
+INSTRUCTION_QUEUE_SIZE = 6
 
 
 def main():
@@ -34,24 +38,21 @@ def main():
         DEBUG = True
 
     print("starting...")
-    program_location = PROGRAM_BEGIN_LOCATION
-    memory = Memory(MEMORY_SPACE, PROGRAM_BEGIN_LOCATION, PROGRAM_END_LOCATION)
-    memory.load(program_location, sys.argv[1])
+    
+    reg = Register_file(DATA_SEGMENT, CODE_SEGMENT, STACK_SEGMENT, EXTRA_SEGMENT)
 
-    cache_memory = Cache_memory(CACHE_SPACE, PROGRAM_BEGIN_LOCATION, PROGRAM_END_LOCATION)
-    cache_memory.space = memory.space[PROGRAM_BEGIN_LOCATION:PROGRAM_END_LOCATION]
+    memory = Memory(MEMORY_SIZE, reg.CS)
+    memory.load_CS(sys.argv[1]) # load code segment
 
-    general_register = Register(["AX","BX","CX","DX"])
-    special_register = Register(["SP", "BP", "SI", "DI"]) # TODO
-    flag_register = Flag_register()
+    cache = Cache_memory(CACHE_SIZE, reg.CS)
+    cache.space = memory.space[reg.CS:(reg.CS+SEGMENT_SIZE)]
 
-    BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, program_location, cache_memory, special_register)
-    EU = execution_unit.execution_unit(general_register, flag_register)
+    BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, reg, cache)
+    EU = execution_unit.execution_unit(reg, BIU)
 
     cpu = CPU(BIU, EU)
-    # print(cache_memory.space)
-    # print(cache_memory.is_null_space(207))
-    # print(cache_memory.is_null_space(208))
+    print("CPU initialized successfully.")
+
     while not cpu.check_done():
         cpu.iterate(debug=DEBUG)
     cpu.print_end_state()

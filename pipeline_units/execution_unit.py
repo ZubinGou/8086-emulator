@@ -4,23 +4,48 @@ import re
 
 class execution_unit(object):
 
-    def __init__(self, general_register, flag_register):
-        self.instruction_register = []  # 指令寄存器
+    def __init__(self, register_file, BIU):
+        self.IR = []                 # 指令寄存器
         self.opcode = ''             # 操作码
         self.oprands = []            # 操作数
-        self.flag_register = flag_register  # 标志寄存器
-        self.general_register = general_register # 通用寄存器
-        pass
+        self.eo = [0] * 5            # Evaluated operands
+        self.GR = register_file.GR   # AX BX CX DX
+        self.FR = register_file.FR   # Flag Register
+        self.SP = register_file.SP
+        self.BP = register_file.BP
+        self.SI = register_file.SI
+        self.DI = register_file.DI
 
-    def run(self, cpu):
-        self.instruction_register = cpu.bus_interface_unit.instruction_queue.get()
-        self.opcode = self.instruction_register[0]
-        if len(self.instruction_register) > 1:
-            self.oprands = self.instruction_register [1:]
-        self.instruction_decoder(cpu)
-        self.control_circuit(cpu)
+        self.bus = BIU # 内部总线连接BIU
 
-    def instruction_decoder(self, cpu):
+    def run(self):
+        self.IR = self.bus.instruction_queue.get()
+        self.opcode = self.IR[0]
+        if len(self.IR) > 1:
+            self.oprands = self.IR[1:]
+        self.instruction_decoder()
+        self.evaluate_all_oprands()
+        self.control_circuit()
+
+    def read_cache(self, location):
+        return self.bus.read_cache(location)
+
+    def evaluate_parameter(self, operand):
+        # read register
+        for reg in self.GR.reg_list:
+            if reg in operand:
+                operand = operand.replace(reg, str(self.GR.read(reg)))
+        # access memory
+        if '[' in operand:
+            operand = operand.replace('[', '').replace(']', '')
+            operand = self.read_cache(operand)
+        return int(operand)
+
+    def evaluate_all_oprands(self):
+        for i in range(len(self.oprands)):
+            self.eo[i] = self.evaluate_parameter(self.oprands[i])
+
+    def instruction_decoder(self):
         # 数制转换
         ins = self.oprands
         if len(ins) < 1:
@@ -35,19 +60,7 @@ class execution_unit(object):
             if bin_number:
                 ins[i] = ins[i].replace(bin_number[0], str(int(bin_number[0].strip('B'), 2)))
 
-    def evaluate_parameter(self, operand, cpu):
-        # [AX] [202] AX -> 202
-        # operand is string
-        for reg in self.general_register.reg_list:
-            if reg in operand:
-                operand = operand.replace(reg, str(self.general_register.read(reg)))
-
-        if '[' in operand:
-            operand = operand.replace('[', '').replace(']', '')
-            operand = cpu.bus_interface_unit.cache_memory.read_cache_location(operand)
-        return int(operand)
-
-    def control_circuit(self, cpu):
+    def control_circuit(self):
         data_transfer_ins = ['MOV', 'PUSH', 'POP', 'IN', 'OUT']
         arithmetic_ins = ['ADD', 'SUB', 'INC', 'DEC', 'MUL', 'IMUL', 'DIV', 'IDIV', 'CMP']
         bit_manipulation_ins = ['NOT', 'AND', 'OR', 'XOR', 'TEST', 'SHL', 'SAL', 'SHR', 'SAR']
@@ -55,75 +68,70 @@ class execution_unit(object):
         string_ins = []
         
         if self.opcode in data_transfer_ins:
-            self.data_transfer(cpu)
+            self.data_transfer()
         elif self.opcode in arithmetic_ins:
-            self.alu(cpu)
+            self.alu()
         elif self.opcode in bit_manipulation_ins:
-            self.alu_bit(cpu)
+            self.alu_bit()
         elif self.opcode in program_transfer_ins:
-            self.program_transfer(cpu)
+            self.program_transfer()
         elif self.opcode in string_ins:
-            self.string_operation(cpu)
+            self.string_operation()
         else:
             sys.exit("operation code not support")
 
-    def data_transfer(self, cpu):
+    def data_transfer(self):
         if self.opcode == 'MOV':
-            result = self.evaluate_parameter(self.oprands[1], cpu)
-            if self.oprands[0] in self.general_register.reg_list:
-                self.general_register.write(self.oprands[0], result)
+            result = self.eo[1]
+            if self.oprands[0] in self.GR.reg_list:
+                self.GR.write(self.oprands[0], result)
             elif '[' in self.oprands[0]:
                 target_location = self.oprands[0].replace('[', '').replace(']', '')
-                cpu.cache_memory.write(target_location, result)
+                cpu.cache.write(target_location, result)
         else:
             pass        
 
-
-    def alu(self, cpu):
+    def alu(self):
         if self.opcode == 'ADD':
-            self.oprands[1] = self.evaluate_parameter(self.oprands[1], cpu)
-            result = int(self.general_register.read(self.oprands[0])) + self.oprands[1]
-            self.general_register.write(self.oprands[0], result)
+            result = self.eo[0] + self.eo[1]
+            self.GR.write(self.oprands[0], result)
 
         elif self.opcode == 'SUB':
-            self.oprands[1] = self.evaluate_parameter(self.oprands[1], cpu)
-            result = int(self.general_register.read(self.oprands[0])) - self.oprands[1]
-            self.general_register.write(self.oprands[0], result)
+            result = self.eo[0] - self.eo[1]
+            self.GR.write(self.oprands[0], result)
 
-        elif self.opcode == 'MUL':
-            multiplier = self.evaluate_parameter(self.oprands[0], cpu)
-            result = multiplier * int(self.general_register.read('AX'))
-            self.general_register.write('AX', result)
+        elif self.opcode == 'MUL': 
+            result = self.eo[0] * self.GR.read_int('AX')
+            self.GR.write('AX', result)
 
         elif self.opcode == 'DIV':
-            divisor = self.evaluate_parameter(self.oprands[0], cpu)
-            divident = int(self.general_register.read('AX'))
+            divisor = self.eo[0]
+            divident = int(self.GR.read('AX'))
             quotient = divident // divisor
             remainder = divident % divisor
-            self.general_register.write('AX', quotient)
-            self.general_register.write('DX', remainder)
+            self.GR.write('AX', quotient)
+            self.GR.write('DX', remainder)
         
         elif self.opcode == 'INC':
-            result = int(self.general_register.read(self.oprands[0])) + 1
-            self.general_register.write(self.oprands[0], result)
+            result = self.eo[0] + 1
+            self.GR.write(self.oprands[0], result)
 
         elif self.opcode == 'DEC':
-            result = int(self.general_register.read(self.oprands[0])) - 1
-            self.general_register.write(self.oprands[0], result)
+            result = self.eo[0] - 1
+            self.GR.write(self.oprands[0], result)
 
         else:
             sys.exit("operation code not support")
 
 
-    def alu_bit(self, cpu):
+    def alu_bit(self):
         pass
 
-    def program_transfer(self, cpu):
+    def program_transfer(self):
         if self.opcode == 'JMP':
-            self.oprands[0] = self.evaluate_parameter(self.oprands[0], cpu)
-            cpu.bus_interface_unit.program_counter = self.oprands[0]
+            self.bus.IP = self.eo[0]
         else:
             pass
 
-    def string_operation(self, cpu):
+    def string_operation(self):
         pass

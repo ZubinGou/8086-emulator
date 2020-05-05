@@ -1,7 +1,7 @@
 import sys
 
-class Register(object):
-    # 通用寄存器和特殊寄存器
+class General_register(object):
+    # 通用寄存器
     def __init__(self, reg_list):
         self.reg_list = reg_list
         self.reg_count = len(reg_list)
@@ -16,14 +16,37 @@ class Register(object):
             sys.exit("register name error")
         return self.space[reg_name]
     
+    def read_int(self, reg_name):
+        if reg_name not in self.reg_list:
+            sys.exit("register name error")
+        return int(self.space[reg_name])
+    
     def write(self, reg_name, content):
         # content is a list
         if reg_name not in self.reg_list:
             sys.exit("register name error")
         self.space[reg_name] = content
 
+class Register(int):
+
+    def __new__(cls, value=0, *args, **kwargs):
+        return  super(cls, cls).__new__(cls, value)
+
+    def __str__(self):
+        return "%d" % int(self)
+
+    def __repr__(self):
+        return "%d" % int(self)
+
+    def hex(self):
+        return hex(self)
+    
+    def bin(self):
+        return bin(self)
+
 class Flag_register(object):
     # 标志寄存器
+    # 16bits的标志寄存器，其中9个比特是被使用的，另外7个比特保留未用
     def __init__(self):
         # status flags
         self.carry = 0
@@ -36,3 +59,22 @@ class Flag_register(object):
         self.trap = 0
         self.interrupt = 0
         self.direction = 0
+
+class Register_file(object):
+    # 寄存器堆
+    def __init__(self, DATA_SEGMENT, CODE_SEGMENT, STACK_SEGMENT, EXTRA_SEGMENT):
+        # General Purpose Registers
+        self.GR = General_register(["AX","BX","CX","DX"])
+        # Segment Registers
+        self.DS = Register(DATA_SEGMENT)
+        self.CS = Register(CODE_SEGMENT)
+        self.SS = Register(STACK_SEGMENT)
+        self.ES = Register(EXTRA_SEGMENT)
+        # Pointers and Index Registers
+        self.SP = Register()
+        self.BP = Register()
+        self.SI = Register()
+        self.DI = Register()
+        # Control register
+        self.IP = Register()
+        self.FR = Flag_register()

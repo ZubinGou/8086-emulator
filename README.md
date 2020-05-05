@@ -59,7 +59,7 @@
   - BX (Base)：基地址寄存器；
   - CX (Count)：计数器寄存器；
   - DX (Data)：数据寄存器；
-  > AX、BX、CX、DX都是通用寄存器。（General Purpose Registers）
+  > AX、BX、CX、DX都是通用寄存器。（General Purpose General_registers）
 
 - 指针寄存器:SP、BP
   - SP (Stack Pointer)：堆栈指针寄存器；
@@ -116,14 +116,14 @@ pre-fetches up to 6 instructions in advance。（之所以选择6字节长队列
   - BIU restarts filling in the queue when at least two locations of queue are vacant.
   - Pipelining：Fetching the next instruction (by BIU from CS) while executing the current instruction 。
   - Gets flushed whenever a branch instruction occurs.
-#### Segment Registers
+#### Segment General_registers
 暂未实现
-#### 程序计数器（Program Counter，PC）
+#### 程序计数器（Program Counter，IP）
 $物理地址=段地址\times 16+偏移地址$，这种寻址方法实现16位寄存器寻址20位地址。设段寄存器CS中内容为M，IP中内容为N，我们从$M\times 16+N$单元开始，逐条读取指令并且执行。
-注明：CS，code segment代码段寄存器。IP，instruction pointer指令指针寄存器。PC，programme counter程序计数器。
-我们为了简化，将CS：IP抽象为程序计数器PC这个概念，并且假设所有指令长度为单位1，每次取指后PC加1。
+注明：CS，code segment代码段寄存器。IP，instruction pointer指令指针寄存器。IP，programme counter程序计数器。
+我们为了简化，将CS：IP抽象为程序计数器IP这个概念，并且假设所有指令长度为单位1，每次取指后IP加1。
 #### Address Generation Circuit
-因为假定PC存放地址，不需要地址加法器。
+因为假定IP存放地址，不需要地址加法器。
 #### 数据通路-总线结构
 - 8086CPU16位结构的CPU，字长16位，有以下特性：
   - 运算器一次最多可以处理16位数据
@@ -141,9 +141,9 @@ The instruction decoder decodes instruction in IR and sends the information to t
 - AX、BX、CD、DX
 #### Special purpose registers
 - SP、BP、SI、DI（暂未实现）
-#### Instruction Register
+#### Instruction General_register
 The EU fetches an opcode from the queue into the instruction register.
-#### Flag/Status Register
+#### Flag/Status General_register
 - 暂未实现
 - 6 Status flags:
   - carry flag(CF)
