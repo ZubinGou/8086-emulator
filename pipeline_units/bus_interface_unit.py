@@ -18,7 +18,9 @@ class bus_interface_unit(object):
 
     def read_cache(self, location):
         self.cache.read_cache_location(location)
-
+    
+    def write_cache(self, location, content):
+        self.cache.write_single_location(location, content)
 
     def run(self):
         # print()

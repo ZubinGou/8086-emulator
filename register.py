@@ -2,28 +2,28 @@ import sys
 
 class General_register(object):
     # 通用寄存器
-    def __init__(self, reg_list):
-        self.reg_list = reg_list
-        self.reg_count = len(reg_list)
+    def __init__(self, list):
+        self.list = list
+        self.reg_count = len(list)
         self.space = {}
-        for reg_name in reg_list:
+        for reg_name in list:
             self.space[reg_name] = 0
         print("initialize register done:")
         print(self.space)
     
     def read(self, reg_name):
-        if reg_name not in self.reg_list:
+        if reg_name not in self.list:
             sys.exit("register name error")
         return self.space[reg_name]
     
     def read_int(self, reg_name):
-        if reg_name not in self.reg_list:
+        if reg_name not in self.list:
             sys.exit("register name error")
         return int(self.space[reg_name])
     
     def write(self, reg_name, content):
         # content is a list
-        if reg_name not in self.reg_list:
+        if reg_name not in self.list:
             sys.exit("register name error")
         self.space[reg_name] = content
 

@@ -49,7 +49,7 @@ class CPU(object):
         print("registers:")
         print("IP: ", self.BIU.IP)
         print("IR: ", self.EU.IR)
-        for reg in self.EU.GR.reg_list:
+        for reg in self.EU.GR.list:
             print(f"{reg}: ", self.EU.GR.read(reg))
         print('-'*80)
     

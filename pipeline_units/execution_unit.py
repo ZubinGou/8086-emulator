@@ -32,7 +32,7 @@ class execution_unit(object):
 
     def evaluate_parameter(self, operand):
         # read register
-        for reg in self.GR.reg_list:
+        for reg in self.GR.list:
             if reg in operand:
                 operand = operand.replace(reg, str(self.GR.read(reg)))
         # access memory
@@ -61,37 +61,61 @@ class execution_unit(object):
                 ins[i] = ins[i].replace(bin_number[0], str(int(bin_number[0].strip('B'), 2)))
 
     def control_circuit(self):
-        data_transfer_ins = ['MOV', 'PUSH', 'POP', 'IN', 'OUT']
-        arithmetic_ins = ['ADD', 'SUB', 'INC', 'DEC', 'MUL', 'IMUL', 'DIV', 'IDIV', 'CMP']
-        bit_manipulation_ins = ['NOT', 'AND', 'OR', 'XOR', 'TEST', 'SHL', 'SAL', 'SHR', 'SAR']
-        program_transfer_ins = ['RET', 'JMP', 'INT']
-        string_ins = []
-        
+        data_transfer_ins = ['MOV', 'XCHG', 'LEA', 'LDS', 'LES']
+        arithmetic_ins = ['ADD', 'SUB', 'INC', 'DEC', 'MUL', 'IMUL', 'DIV', 'IDIV']
+        logical_ins = ['AND', 'OR', 'XOR', 'NOT', 'NEG', 'CPM', 'TEST']
+        rotate_shift_ins = ['RCL', 'RCR'] 
+        transfer_control_ins = ['JMP', 'RET', 'JA', 'LOOP', 'RET', 'CALL']
+        string_manipulation_ins = ['MOVS']
+        flag_manipulation_ins = ['STC']
+        stack_related_ins = ['PUSH', 'POP', 'PUSHF', 'POPF']
+        input_output_ins = ['IN', 'OUT']
+        miscellaneous_ins = ['NOP', 'INT', 'HLT']
+
+
         if self.opcode in data_transfer_ins:
-            self.data_transfer()
+            self.data_transfer_ins()
         elif self.opcode in arithmetic_ins:
-            self.alu()
-        elif self.opcode in bit_manipulation_ins:
-            self.alu_bit()
-        elif self.opcode in program_transfer_ins:
-            self.program_transfer()
-        elif self.opcode in string_ins:
-            self.string_operation()
+            self.arithmetic_ins()
+        elif self.opcode in logical_ins:
+            self.logical_ins()
+        elif self.opcode in rotate_shift_ins:
+            self.rotate_shift_ins()
+        elif self.opcode in transfer_control_ins:
+            self.transfer_control_ins()
+        elif self.opcode in string_manipulation_ins:
+            self.string_manipulation_ins()
+        elif self.opcode in flag_manipulation_ins:
+            self.flag_manipulation_ins()
+        elif self.opcode in stack_related_ins:
+            self.stack_related_ins()
+        elif self.opcode in input_output_ins:
+            self.input_output_ins()
+        elif self.opcode in miscellaneous_ins:
+            self.miscellaneous_ins()
         else:
             sys.exit("operation code not support")
 
-    def data_transfer(self):
+    def data_transfer_ins(self):
         if self.opcode == 'MOV':
             result = self.eo[1]
-            if self.oprands[0] in self.GR.reg_list:
+            if self.oprands[0] in self.GR.list:
                 self.GR.write(self.oprands[0], result)
             elif '[' in self.oprands[0]:
-                target_location = self.oprands[0].replace('[', '').replace(']', '')
-                cpu.cache.write(target_location, result)
+                location = self.oprands[0].replace('[', '').replace(']', '')
+                self.bus.write_cache(location, result)
+        elif self.opcode == 'XCHG':
+            pass
+        elif self.opcode == 'LEA':
+            pass
+        elif self.opcode == 'LDS':
+            pass
+        elif self.opcode == 'LES':
+            pass
         else:
             pass        
 
-    def alu(self):
+    def arithmetic_ins(self):
         if self.opcode == 'ADD':
             result = self.eo[0] + self.eo[1]
             self.GR.write(self.oprands[0], result)
@@ -124,14 +148,29 @@ class execution_unit(object):
             sys.exit("operation code not support")
 
 
-    def alu_bit(self):
+    def logical_ins(self):
         pass
 
-    def program_transfer(self):
+    def rotate_shift_ins(self):
+        pass
+
+    def transfer_control_ins(self):
         if self.opcode == 'JMP':
             self.bus.IP = self.eo[0]
         else:
             pass
 
-    def string_operation(self):
+    def string_manipulation_ins(self):
+        pass
+
+    def flag_manipulation_ins(self):
+        pass
+
+    def stack_related_ins(self):
+        pass
+
+    def input_output_ins(self):
+        pass
+
+    def miscellaneous_ins(self):
         pass
