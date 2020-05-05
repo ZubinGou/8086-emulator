@@ -27,9 +27,6 @@ class execution_unit(object):
         self.evaluate_all_oprands()
         self.control_circuit()
 
-    def read_cache(self, location):
-        return self.bus.read_cache(location)
-
     def evaluate_parameter(self, operand):
         # read register
         for reg in self.GR.list:
@@ -38,7 +35,7 @@ class execution_unit(object):
         # access memory
         if '[' in operand:
             operand = operand.replace('[', '').replace(']', '')
-            operand = self.read_cache(operand)
+            operand = self.bus.read_cache(operand)
         return int(operand)
 
     def evaluate_all_oprands(self):

@@ -45,7 +45,13 @@ class Memory(object):
     def load_CS(self, file_name):
         self.load(self.program_begin, file_name)
 
-    # TODO 段寄存器偏移
+    def read_seg(self, segment_reg, offset):
+        address = segment_reg * 16 + offset
+        return self.read_single_location(address)
+
+    def write_seg(self, segment_reg, offset, content):
+        address = segment_reg * 16 + offset
+        self.write_single_location(address, content)
 
 class Cache_memory(Memory):
     # 高速缓存
