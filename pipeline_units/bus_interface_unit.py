@@ -6,21 +6,22 @@ import pprint
 
 class bus_interface_unit(object):
 
-    def __init__(self, instruction_queue_size, register_file, cache):
+    def __init__(self, instruction_queue_size, register_file, cache, memory):
         # 预取指令队列
         self.instruction_queue = queue.Queue(instruction_queue_size) # Prefetch input queue
-        self.cache = cache
         self.DS = register_file.DS
         self.CS = register_file.CS
         self.SS = register_file.SS
         self.ES = register_file.ES
         self.IP = register_file.IP
+        self.cache = cache
+        self.memory = memory # External bus to memory
 
     def read_cache(self, location):
-        self.cache.read_cache_location(location)
+        self.cache.read_byte(location)
     
     def write_cache(self, location, content):
-        self.cache.write_single_location(location, content)
+        self.cache.write_byte(location, content)
 
     def run(self):
         # print()
@@ -29,8 +30,8 @@ class bus_interface_unit(object):
         
         # print(self.IP)
         # print("--------------------")
-        # print(self.cache.read_cache_location(self.IP))
-        # print(self.cache.read_single_location(0))
+        # print(self.cache.read_byte(self.IP))
+        # print(self.cache.read_byte(0))
 
         # 模仿8086取指机制，queue中少了2条及以上指令便取指
         if self.instruction_queue.qsize() <= self.instruction_queue.maxsize - 2:
@@ -46,7 +47,7 @@ class bus_interface_unit(object):
 
     def fetch_one_instruction(self):
         # 取单条指令
-        instruction = self.cache.read_cache_location(self.IP)
+        instruction = self.cache.read_byte(self.IP)
         self.instruction_queue.put(instruction)
         self.IP += 1
         print("fetch 1 ins to queue")

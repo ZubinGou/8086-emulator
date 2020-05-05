@@ -59,15 +59,15 @@ class execution_unit(object):
 
     def control_circuit(self):
         data_transfer_ins = ['MOV', 'XCHG', 'LEA', 'LDS', 'LES']
-        arithmetic_ins = ['ADD', 'SUB', 'INC', 'DEC', 'MUL', 'IMUL', 'DIV', 'IDIV']
+        arithmetic_ins = ['ADD', 'SUB', 'INC', 'DEC', 'MUL', 'IMUL', 'DIV', 'IDIV', 'INC', 'DEC', 'CBW', 'CWD']
         logical_ins = ['AND', 'OR', 'XOR', 'NOT', 'NEG', 'CPM', 'TEST']
-        rotate_shift_ins = ['RCL', 'RCR'] 
-        transfer_control_ins = ['JMP', 'RET', 'JA', 'LOOP', 'RET', 'CALL']
-        string_manipulation_ins = ['MOVS']
-        flag_manipulation_ins = ['STC']
+        rotate_shift_ins = ['RCL', 'RCR', 'ROL', 'ROR', 'SAL', 'SHL', 'SAR', 'SHR'] 
+        transfer_control_ins = ['JMP', 'JA', 'JAE', 'JB', 'JBE', 'JC', 'JCE', 'JCXZ', 'JE', 'JG', 'JGE' 'JL', 'JLE', 'JNA', 'JNAE', 'JNB', 'JNBE', 'JNC', 'JNE', 'JNG', 'JNE', 'JNG', 'JNGE', 'JNL', 'JNLE', 'JNO', 'JNP', 'JNS', 'JNZ', 'JO', 'JP', 'JPE', 'JPO', 'JS', 'JZ', 'LOOP', 'LOOPE', 'LOOPNE', 'LOOPNZ', 'LOOPZ', 'RET', 'CALL', 'RET', 'RETF']
+        string_manipulation_ins = ['MOVS', 'CMPS', 'LODS', 'STOS', 'SCAS', 'REP', 'REPE', 'REPZ', 'REPNE', 'REPNZ']
+        flag_manipulation_ins = ['STC', 'CLC', 'CMC', 'STD', 'CLD', 'STI', 'CLI', 'LANF', 'SANF']
         stack_related_ins = ['PUSH', 'POP', 'PUSHF', 'POPF']
         input_output_ins = ['IN', 'OUT']
-        miscellaneous_ins = ['NOP', 'INT', 'HLT']
+        miscellaneous_ins = ['NOP', 'INT', 'IRET', 'XLAT', 'HLT', 'ESC', 'INTO', 'LOCK', 'WAIT']
 
 
         if self.opcode in data_transfer_ins:
@@ -144,30 +144,136 @@ class execution_unit(object):
         else:
             sys.exit("operation code not support")
 
-
     def logical_ins(self):
-        pass
+        if self.opcode == 'AND':
+            pass
+        elif self.opcode == 'OR':
+            pass
+        elif self.opcode == 'XOR':
+            pass
+        elif self.opcode == 'NOT':
+            pass
+        elif self.opcode == 'NEG':
+            pass
+        elif self.opcode == 'CPM':
+            pass
+        elif self.opcode == 'TEST':
+            pass
+        else:
+            sys.exit("operation code not support")
 
     def rotate_shift_ins(self):
-        pass
+        if self.opcode == 'RCL':
+            pass
+        elif self.opcode == 'RCR':
+            pass
+        elif self.opcode == 'ROL':
+            pass
+        elif self.opcode == 'ROR':
+            pass
+        elif self.opcode == 'SAL':
+            pass
+        elif self.opcode == 'SHL':
+            pass
+        elif self.opcode == 'SAR':
+            pass
+        elif self.opcode == 'SHR':
+            pass
+        else:
+            sys.exit("operation code not support")
 
     def transfer_control_ins(self):
         if self.opcode == 'JMP':
             self.bus.IP = self.eo[0]
-        else:
+        elif self.opcode == 'JA':
             pass
+        else:
+            sys.exit("operation code not support")
 
     def string_manipulation_ins(self):
-        pass
+        if self.opcode == 'MOVS':
+            pass
+        elif self.opcode == 'CMPS':
+            pass
+        elif self.opcode == 'LODS':
+            pass
+        elif self.opcode == 'STOS':
+            pass
+        elif self.opcode == 'SCAS':
+            pass 
+        elif self.opcode == 'REP':
+            pass 
+        elif self.opcode == 'REPE':
+            pass 
+        elif self.opcode == 'REPZ':
+            pass 
+        elif self.opcode == 'REPNE':
+            pass 
+        elif self.opcode == 'REPNZ':
+            pass
+        else:
+            sys.exit("operation code not support")
 
     def flag_manipulation_ins(self):
-        pass
+        if self.opcode == 'STC':
+            pass
+        elif self.opcode == 'CLC':
+            pass
+        elif self.opcode == 'CMC':
+            pass
+        elif self.opcode == 'STD':
+            pass
+        elif self.opcode == 'CLD':
+            pass
+        elif self.opcode == 'STI':
+            pass
+        elif self.opcode == 'CLI':
+            pass
+        elif self.opcode == 'LANF':
+            pass
+        elif self.opcode == 'SANF':
+            pass
+        else:
+            sys.exit("operation code not support")
 
     def stack_related_ins(self):
-        pass
+        if self.opcode == 'PUSH':
+            pass
+        elif self.opcode == 'POP':
+            pass
+        elif self.opcode == 'PUSHF':
+            pass
+        elif self.opcode == 'POPF':
+            pass
+        else:
+            sys.exit("operation code not support")
 
     def input_output_ins(self):
-        pass
+        if self.opcode == 'IN':
+            pass
+        elif self.opcode == 'OUT':
+            pass
+        else:
+            sys.exit("operation code not support")
 
     def miscellaneous_ins(self):
-        pass
+        if self.opcode == 'NOP':
+            pass
+        elif self.opcode == 'INT':
+            pass
+        elif self.opcode == 'IRET':
+            pass
+        elif self.opcode == 'XLAT':
+            pass
+        elif self.opcode == 'HLT':
+            pass
+        elif self.opcode == 'ESC':
+            pass
+        elif self.opcode == 'INTO':
+            pass
+        elif self.opcode == 'LOCK':
+            pass
+        elif self.opcode == 'WAIT':
+            pass
+        else:
+            sys.exit("operation code not support")

@@ -44,10 +44,10 @@ def main():
     memory = Memory(MEMORY_SIZE, reg.CS)
     memory.load_CS(sys.argv[1]) # load code segment
 
-    cache = Cache_memory(CACHE_SIZE, reg.CS)
+    cache = Cache_memory(CACHE_SIZE)
     cache.space = memory.space[reg.CS:(reg.CS+SEGMENT_SIZE)]
 
-    BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, reg, cache)
+    BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, reg, cache, memory)
     EU = execution_unit.execution_unit(reg, BIU)
 
     cpu = CPU(BIU, EU)
