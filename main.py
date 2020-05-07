@@ -1,6 +1,7 @@
 import re
 import sys
 import queue
+from assembler import Assembler
 from memory import Memory, Cache_memory
 from register import Register_file
 from pipeline_units import bus_interface_unit, execution_unit
@@ -40,9 +41,10 @@ def main():
     print("starting...")
     
     reg = Register_file(DATA_SEGMENT, CODE_SEGMENT, STACK_SEGMENT, EXTRA_SEGMENT)
-
+    assembler = Assembler(DATA_SEGMENT, CODE_SEGMENT, STACK_SEGMENT, EXTRA_SEGMENT)
+    exe = assembler.compile(sys.argv[1])
     memory = Memory(MEMORY_SIZE, reg.CS)
-    memory.load_CS(sys.argv[1]) # load code segment
+    memory.load(exe) # load code segment
 
     cache = Cache_memory(CACHE_SIZE)
     cache.space = memory.space[reg.CS:(reg.CS+SEGMENT_SIZE)]

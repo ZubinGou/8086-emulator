@@ -1,9 +1,9 @@
+assume ds:data,cs:code
 data segment
     a db 1,2,3,4,5,6,7,8,9,10
 data ends                    
 
 code segment
-    assume ds:data,cs:code
     
     start:
         mov ax,data

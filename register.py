@@ -10,6 +10,7 @@ class General_register(object):
             self.space[reg_name] = 0
         print("initialize register done:")
         print(self.space)
+        print()
     
     def read(self, reg_name):
         if reg_name not in self.list:
@@ -66,10 +67,10 @@ class Register_file(object):
         # General Purpose Registers
         self.GR = General_register(["AX","BX","CX","DX"])
         # Segment Registers
-        self.DS = Register(DATA_SEGMENT)
-        self.CS = Register(CODE_SEGMENT)
-        self.SS = Register(STACK_SEGMENT)
-        self.ES = Register(EXTRA_SEGMENT)
+        self.DS = Register(DATA_SEGMENT / 16)
+        self.CS = Register(CODE_SEGMENT / 16)
+        self.SS = Register(STACK_SEGMENT / 16)
+        self.ES = Register(EXTRA_SEGMENT / 16)
         # Pointers and Index Registers
         self.SP = Register()
         self.BP = Register()
