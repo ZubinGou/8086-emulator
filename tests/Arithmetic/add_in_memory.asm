@@ -1,8 +1,9 @@
 ;add a series of 10 bytes stores in the memory from locations
 ;20,000H to 20,009. Store the result immediately after the series.
 
+assume cs:code
+
 CODE SEGMENT
-    assume CS:Code
     
         mov ax,2000H
         mov ds,ax

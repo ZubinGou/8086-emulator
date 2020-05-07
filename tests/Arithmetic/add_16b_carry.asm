@@ -1,3 +1,5 @@
+assume cs:code,ds:data
+
 data segment
     var1 dw 1234h
     var2 dw 5140h
@@ -6,8 +8,6 @@ data segment
 data ends
 
 code segment
-    
-    assume cs:code,ds:data
     
     mov ax,data
     mov ds,ax

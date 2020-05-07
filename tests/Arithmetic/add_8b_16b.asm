@@ -1,3 +1,5 @@
+assume cs:code,ds:data
+
 data segment
     num1 db 05h
     num2 db 06h
@@ -6,8 +8,6 @@ data segment
     sum db ?
     sum2 dw ?
 data ends   
-
-assume cs:code,ds:data
 
 code segment
     start: mov ax,data
