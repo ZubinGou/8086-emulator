@@ -1,5 +1,5 @@
 import sys
-from assembler import assemble
+from assembler import Assembler
 
 class Memory(object):
 
@@ -38,19 +38,13 @@ class Memory(object):
         self.space[location + 1] = content_list[0]
         self.space[location] = content_list[1:]
 
-    def load(self, location, file_name):
+    def load(self, exe):
         # 加载器
         print("loading assembly code to memory...")
-        instructions = assemble(file_name)
-        if self.memory_overflow(location) or self.memory_overflow(location+len(instructions)):
-            return sys.exit("Memory Overflow")
-        self.space[location:location+len(instructions)] = list(instructions) 
+
         # or instructions[:] or instructions.copy()
         print("successfully loaded!")
         print()
-
-    def load_CS(self, file_name):
-        self.load(self.program_begin, file_name)
 
     # def read_seg(self, segment_reg, offset):
     #     address = segment_reg * 16 + offset
