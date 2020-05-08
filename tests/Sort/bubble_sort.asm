@@ -1,12 +1,10 @@
 ;ALP to Sort a set of unsigned integer numbers in ascending/ descending
 ;order using Bubble sort algorithm.
-
+ASSUME CS:CODE,DS:DATA
 
 DATA SEGMENT
     A DW 0005H, 0ABCDH, 5678H, 1234H, 0EFCDH, 45EFH
 DATA ENDS
-
-ASSUME CS:CODE,DS:DATA
 
 CODE SEGMENT
     START: MOV AX,DATA
