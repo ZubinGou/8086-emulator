@@ -36,7 +36,7 @@ class Assembler(object):
         self.name = ''
         self.title = ''
         self.space = {} # 段空间
-        self.seg_adr = {'DS': ds_adr/16, 'CS': cs_adr/16, 'SS': ss_adr/16, 'ES': es_adr/16}
+        self.seg_adr = {'DS': ds_adr // 16, 'CS': cs_adr // 16, 'SS': ss_adr // 16, 'ES': es_adr // 16}
         self.seg_id = {}
         self.tags = {} # 标号
         self.vars = {} # 变量
