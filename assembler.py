@@ -1,13 +1,23 @@
 import re
 import os
 import sys
+import ast
 from instructions import all_ins
 
 data_def_ins = ['DB', 'DW', 'DD', 'DQ', 'DT', 'DUP']
 
+def to_int_str(matched):
+    string = matched.group()
+    idx = re.search(r'[,\s\]]', string).span()[0]
+    suffix = string[idx:]
+    string = string[:idx]
+    int_str = str(to_decimal(string))
+    # print("int_st:", int_str)
+    return int_str + suffix
 
 def to_decimal(num):
     # all kinds of string of num to decimal
+    num = num.upper()
     if num[-1] == 'B':
         res = int(num.rstrip('B'), 2)
     elif num[-1] == 'O':
@@ -25,15 +35,16 @@ class Assembler(object):
     def __init__(self, ds_adr, cs_adr, ss_adr, es_adr):
         self.name = ''
         self.title = ''
-        self.space = {}
-        self.seg_adr = {'DS': ds_adr/16, 'CS': cs_adr/16, 'SS': ss_adr/16, 'ES': es_adr/16}
+        self.space = {} # 段空间
+        self.seg_adr = {'DS': ds_adr // 16, 'CS': cs_adr // 16, 'SS': ss_adr // 16, 'ES': es_adr // 16}
         self.seg_id = {}
         self.tags = {} # 标号
         self.vars = {} # 变量
         self.ip = 0
+        self.ins_origin = [] # 未转换和分割的原始指令
 
     def compile(self, file_name):
-        instructions = self.preprocessing(file_name)
+        instructions = self.__preprocessing(file_name)
         for ip in range(len(instructions)):
             ins = instructions[ip]
             if ins[0] == 'NAME':
@@ -44,10 +55,12 @@ class Assembler(object):
                 self.__assume(ins[1:])
             elif len(ins) > 1 and ins[1] == 'SEGMENT':
                 ip = self.__segment(instructions, ip)
+        print()
         for key, val in self.space.items():
-            print(key,':\n', val[:20])
+            print(key,':\n', val[:80])
             print()
         print(self.tags)
+        print(self.vars)
         sys.exit(0)
         return self
 
@@ -59,6 +72,7 @@ class Assembler(object):
         self.space[seg_name] = [0] * int('10000', 16)
         for i in range(ip+1, len(instructions)):
             ins = instructions[i]
+            ins_ori = self.ins_origin[i]
             if ins[0] == 'ORG':
                 seg_ip = to_decimal(ins[1])
             elif ins[0] == 'EVEN': # 下面的内存变量从下一个偶地址单元开始分配
@@ -92,32 +106,94 @@ class Assembler(object):
                     seg_ip += 1
             
             elif ins[0] in data_def_ins: # 数据定义伪指令
-                seg_ip = self.__data_define(ins, seg_name, seg_ip)
-            
+                byte_list = self.__data_define(ins, ins_ori)
+                self.space[seg_name][seg_ip:seg_ip+len(byte_list)] = byte_list
+                seg_ip += len(byte_list)
             elif len(ins) > 3 and ins[1] in data_def_ins:
                 var = ins[0]
                 self.vars[var] = {'seg': self.seg_adr[seg_name],
                                   'offset': seg_ip,
-                                  'type': var}      # var type TODO
-                seg_ip = self.__data_define(ins[1:], seg_name, seg_ip)
+                                  'type': 0}      # var type TODO
+                var_ori = ins_ori.split()[0] # 实际的变量名（未转换大小写）
+                byte_list = self.__data_define(ins[1:], ins_ori.replace(var_ori, '', 1).strip())
+                self.space[seg_name][seg_ip:seg_ip+len(byte_list)] = byte_list
+                seg_ip += len(byte_list)
             else: # 没有数据标号的汇编指令 直接送入段空间
                 self.space[seg_name][seg_ip] = ins
                 seg_ip += 1
 
-    def __data_define(self, ins, seg_name, seg_ip): # TODO
+    def __data_define(self, ins, ins_ori):
         var = ins[0]
-        if ins[2][:3] == 'DUP':
+        var_ori = ins_ori.split()[0]
+        byte_list = []
+        # print("var:", var)
+        # print("var_ori:", var_ori)
+        if len(ins) > 2 and ins[2][:3] == 'DUP':     # db Imm dup ()
             times = to_decimal(ins[1])
-            pass 
-        if var == 'DB': # DB　’A’, ‘D’, 0Dh, ‘$’   DB　1, 3, 5, 7, 9, 11
-            pass
+            idx = ins_ori.find('(')
+            dup_str = var + ' ' + ins_ori[idx + 1:-1]
+            dup_list = [s for s in re.split(" |,", dup_str.strip().upper()) if s]
+            byte_list = self.__data_define(dup_list, dup_str) * times
+            print(byte_list)
+
+        elif var == 'DB': # DB　’A’, ‘D’, 0Dh, ‘$’   DB　1, 3, 5, 7, 9, 11
+            db_str = ins_ori.replace(var_ori, '', 1).strip()
+            byte_list = self.__str_to_bytes(db_str)
+
         elif var == 'DW':
-            pass
+            dw_str = ins_ori.replace(var_ori, '', 1).strip()
+            byte_list = self.__str_to_words(dw_str)
+
         elif var == 'DD':
-            pass
+            dd_str = ins_ori.replace(var_ori, '', 1).strip()
+            byte_list = self.__str_to_dwords(dd_str)
+            
         else:
             sys.exit("Compile Error")
-        return seg_ip
+        
+        print("bytes_list: ", byte_list)
+        return byte_list
+
+    def __str_to_bytes(self, string):
+        string = re.sub(r"[0-9A-Fa-f]+[HhBbOo]{1}[,\s\]]+", to_int_str, '[' + string + ']')
+        str_list =  ast.literal_eval(string)
+        byte_list = []
+        for item in str_list:
+            if isinstance(item, int):
+                byte_list.append([hex(item)])
+            elif isinstance(item, str):
+                for s in item:
+                    byte_list.append([hex(ord(s))])
+            else:
+                sys.exit("Compile Error: str to hex")
+        return byte_list
+
+    def __str_to_words(self, string):
+        string = re.sub(r"[0-9A-Fa-f]+[HhBbOo]{1}[,\s\]]+", to_int_str, '[' + string + ']')
+        str_list =  ast.literal_eval(string)
+        byte_list = []
+        for item in str_list:
+            if isinstance(item, int):
+                high, low = item >> 8, item & 0x0ff
+                byte_list.append([hex(low)])  # little endian
+                byte_list.append([hex(high)]) 
+            else:
+                sys.exit("Compile Error: str to hex")
+        return byte_list
+
+    def __str_to_dwords(self, string):
+        string = re.sub(r"[0-9A-F]+[HhBbOo]{1}[,\s\]]+", to_int_str, '[' + string + ']')
+        str_list =  ast.literal_eval(string)
+        byte_list = []
+        for item in str_list:
+            if isinstance(item, int):
+                byte_list.append([hex(item & 0x0ff)]) # little endian
+                byte_list.append([hex(item >> 8 & 0x0ff)])
+                byte_list.append([hex(item >> 16 & 0x0ff)])
+                byte_list.append([hex(item >> 24)])
+            else:
+                sys.exit("Compile Error: str to hex")
+        return byte_list
 
     def __assume(self, ins):
         for i in ins:
@@ -130,15 +206,15 @@ class Assembler(object):
     def __remove_empty_line(self, text):
         return os.linesep.join([s.strip() for s in text.splitlines() if s.strip()])
 
-    def preprocessing(self, file_name):
+    def __preprocessing(self, file_name):
         with open(file_name, 'r', encoding='utf-8') as file:
             code = file.read()
             code = self.__strip_comments(code)
             code = self.__remove_empty_line(code)
             instructions = []
             for line in code.split(os.linesep):
-                # print(line)
                 instructions.append([s for s in re.split(" |,", line.strip().upper()) if s])
+                self.ins_origin.append(line.strip())
             for i in range(len(instructions)):
                 print(instructions[i])
             print()
