@@ -1,5 +1,6 @@
 import sys
 import re
+from register import *
 from instructions import *
 from assembler import to_int_str
 
@@ -11,11 +12,11 @@ class execution_unit(object):
         self.oprands = []            # 操作数
         self.eo = [0] * 5            # Evaluated operands
         self.GR = register_file.GR   # AX BX CX DX
-        self.FR = register_file.FR   # Flag Register
-        self.SP = register_file.SP
-        self.BP = register_file.BP
-        self.SI = register_file.SI
-        self.DI = register_file.DI
+        self.FR = Flag_register()   # Flag Register
+        self.SP = Register(0)
+        self.BP = Register(0)
+        self.SI = Register(0)
+        self.DI = Register(0)
 
         self.bus = BIU # 内部总线连接BIU
 

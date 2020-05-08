@@ -3,9 +3,10 @@ from assembler import Assembler
 
 class Memory(object):
 
-    def __init__(self, max_space):
+    def __init__(self, max_space, seg_size):
         self.max_space = max_space
-        self.space = [[0]] * self.max_space
+        self.seg_size = seg_size
+        self.space = [0] * self.max_space
 
     def memory_overflow(self, location):
         if location < 0 or location > self.max_space:
@@ -38,8 +39,11 @@ class Memory(object):
 
     def load(self, exe):
         # 加载器
-        for key, val in exe.space.items():
-            pass
+        for seg, val in exe.space.items():
+            adr = int(exe.seg_adr[seg], 16) * 16
+            print(adr)
+            self.space[adr: adr + self.seg_size] = val
+            print(self.space[adr:adr+100])
 
         print("loading assembly code to memory...")
 

@@ -44,7 +44,7 @@ def main():
     reg = Register_file(DS_START, CS_START, SS_START, ES_START)
     assembler = Assembler(DS_START, CS_START, SS_START, ES_START)
     exe_file = assembler.compile(sys.argv[1])
-    memory = Memory(MEMORY_SIZE)
+    memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
     memory.load(exe_file) # load code segment
 
     cache = Cache_memory(CACHE_SIZE)

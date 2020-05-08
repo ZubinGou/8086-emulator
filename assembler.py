@@ -64,15 +64,14 @@ class Assembler(object):
         print()
         for key, val in self.space.items():
             print(key,':')
-            pprint(val[:80], compact=True)
+            pprint(val[:100], compact=True)
             print()
         print("seg_id:",self.seg_id)
-        print("tags:")
+        print("\ntags:")
         pprint(self.tags)
-        print("vars:")
+        print("\nvars:")
         pprint(self.vars)
-        print("ip:", self.ip)
-        sys.exit(0)
+        print("\ninitital ip:", self.ip)
         return self
 
     def __eval_id(self):
@@ -118,14 +117,16 @@ class Assembler(object):
                         # 段名：MOV AX,DRG     
 
     def __segment(self, instructions, ip):
-        seg_ip = 0
+        seg_ip = 0  # 当前段偏移量，即'$' 
         seg_ins = instructions[ip]
         seg_tmp = seg_ins[0]
         seg_name = self.seg_id[seg_tmp] # CS DS SS ES
         self.space[seg_name] = [0] * int('10000', 16)
         for i in range(ip+1, len(instructions)):
             ins = instructions[i]
-            ins_ori = self.ins_origin[i]
+            for j in range(len(ins)):
+                ins[j] = ins[j].replace('$', hex(seg_ip))
+            ins_ori = self.ins_origin[i].replace('$', hex(seg_ip))
             if ins[0] == 'ORG':
                 seg_ip = to_decimal(ins[1])
             elif ins[0] == 'EVEN': # 下面的内存变量从下一个偶地址单元开始分配
@@ -187,7 +188,6 @@ class Assembler(object):
             dup_str = var + ' ' + ins_ori[idx + 1:-1]
             dup_list = [s for s in re.split(" |,", dup_str.strip().upper()) if s]
             byte_list = self.__data_define(dup_list, dup_str) * times
-            print(byte_list)
 
         elif var == 'DB': # DB　’A’, ‘D’, 0Dh, ‘$’   DB　1, 3, 5, 7, 9, 11
             db_str = ins_ori.replace(var_ori, '', 1).strip()
@@ -204,7 +204,7 @@ class Assembler(object):
         else:
             sys.exit("Compile Error")
         
-        print("bytes_list: ", byte_list)
+        # print("bytes_list: ", byte_list)
         return byte_list
 
     def __str_to_bytes(self, string):
@@ -264,6 +264,7 @@ class Assembler(object):
             code = file.read()
             code = self.__strip_comments(code)
             code = self.__remove_empty_line(code)
+            code = code.replace('?', '0')
             instructions = []
             for line in code.split(os.linesep):
                 instructions.append([s for s in re.split(" |,", line.strip().upper()) if s])
