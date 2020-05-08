@@ -1,7 +1,7 @@
 ;Develop and execute ALP that implements Binary search algorithm. The data
 ;consists of sorted 16 bit unsigned integers. The search key is also a 16 bit unsigned
 ;integer.
-
+ASSUME CS:CODE,DS:DATA
 
 DATA SEGMENT
     ARR DW 05H,0111H,2161H,4541H,7161H,8231H
@@ -11,7 +11,6 @@ DATA SEGMENT
     MSG2 DB 'ELEMENT NOT FOUND','$'
 DATA ENDS
 
-ASSUME CS:CODE,DS:DATA
 
 CODE SEGMENT
     START: MOV AX,DATA

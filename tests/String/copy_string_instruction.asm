@@ -1,7 +1,7 @@
 ;ALP to copy the string of successive memory locations from one memory to
 ;other
 ;Using string instructions
-
+ASSUME CS:CODE , DS:DATA, ES:EXTRA
 
 DATA SEGMENT
     SOURCE DB "BIOMEDICAL"
@@ -12,7 +12,6 @@ EXTRA SEGMENT
 EXTRA ENDS
 
 CODE SEGMENT
-    ASSUME CS:CODE , DS:DATA, ES:EXTRA
     START : MOV AX,DATA
             MOV DS,AX
             MOV AX,EXTRA
