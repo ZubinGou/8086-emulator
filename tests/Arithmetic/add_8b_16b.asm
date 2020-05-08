@@ -1,15 +1,15 @@
-assume cs:code,ds:data
+ASSUME CS:CODE,DS:DATA
 
-data segment
-    num1 db 05h
-    num2 db 06h
-    num3 dw 1234h
-    num4 dw 0002h
-    sum db ?
-    sum2 dw ?
-data ends   
+DATA SEGMENT
+    num1 DB 05h
+    num2 DB 06h
+    num3 DW 1234h
+    num4 DW 0002h
+    sum DB ?
+    sum2 DW ?
+DATA ENDS  
 
-code segment
+CODE SEGMENT
     start: mov ax,data
            mov ds,ax           ;initialize data segment
     
@@ -26,5 +26,5 @@ code segment
            mov ah,4ch
            int 21h
     
-code ends
-end start
+CODE ENDS
+END START
