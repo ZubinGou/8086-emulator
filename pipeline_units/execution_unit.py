@@ -1,6 +1,7 @@
 import sys
 import re
 from instructions import *
+from assembler import to_int_str
 
 class execution_unit(object):
 
@@ -62,9 +63,6 @@ class execution_unit(object):
         return segment * 16 + offset
 
     def control_circuit(self):
-       
-
-
         if self.opcode in data_transfer_ins:
             self.data_transfer_ins()
         elif self.opcode in arithmetic_ins:

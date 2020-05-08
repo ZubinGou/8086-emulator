@@ -7,15 +7,16 @@ from register import Register_file
 from pipeline_units import bus_interface_unit, execution_unit
 from cpu import CPU
 
-MEMORY_SIZE = int('FFFFF', 16)  # 内存空间大小
-DATA_SEGMENT = int('20000', 16) # beginning of data segment
-CODE_SEGMENT = int('30000', 16) # beginning of data segment
-STACK_SEGMENT = int('50000', 16) # beginning of data segment
-EXTRA_SEGMENT = int('70000', 16) # beginning of data segment
+INSTRUCTION_QUEUE_SIZE = 6
+MEMORY_SIZE = int('FFFFF', 16)  # 内存空间大小 1MB
+CACHE_SIZE = int('10000', 16)  # 缓存大小 64KB
 SEGMENT_SIZE = int('10000', 16) # 段长度均为最大长度64kB（10000H）
 
-CACHE_SIZE = int('10000', 16)  # 缓存大小
-INSTRUCTION_QUEUE_SIZE = 6
+DS_START = int('2000', 16) # Initial value of data segment
+CS_START = int('3000', 16) # Initial value of code segment
+SS_START = int('5000', 16) # Initial value of stack segment
+ES_START = int('7000', 16) # Initial value of extra segment
+
 
 
 def main():
@@ -40,11 +41,11 @@ def main():
 
     print("starting...")
     
-    reg = Register_file(DATA_SEGMENT, CODE_SEGMENT, STACK_SEGMENT, EXTRA_SEGMENT)
-    assembler = Assembler(DATA_SEGMENT, CODE_SEGMENT, STACK_SEGMENT, EXTRA_SEGMENT)
-    exe = assembler.compile(sys.argv[1])
-    memory = Memory(MEMORY_SIZE, reg.CS)
-    memory.load(exe) # load code segment
+    reg = Register_file(DS_START, CS_START, SS_START, ES_START)
+    assembler = Assembler(DS_START, CS_START, SS_START, ES_START)
+    exe_file = assembler.compile(sys.argv[1])
+    memory = Memory(MEMORY_SIZE)
+    memory.load(exe_file) # load code segment
 
     cache = Cache_memory(CACHE_SIZE)
     cache.space = memory.space[reg.CS:(reg.CS+SEGMENT_SIZE)]

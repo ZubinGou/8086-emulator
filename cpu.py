@@ -1,5 +1,5 @@
 import time
-import pprint
+from pprint import pprint
 
 
 class CPU(object):
@@ -41,10 +41,10 @@ class CPU(object):
         # 打印运行时状态
         print()
         print("cache memory:")
-        pprint.pprint(self.BIU.cache.space[:100], compact=True)
+        pprint(self.BIU.cache.space[:100], compact=True)
         print()
         print("pipeline:")
-        pprint.pprint(list(self.BIU.instruction_queue.queue))
+        pprint(list(self.BIU.instruction_queue.queue))
         print()
         print("registers:")
         print("IP: ", self.BIU.IP)

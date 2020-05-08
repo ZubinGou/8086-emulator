@@ -63,14 +63,14 @@ class Flag_register(object):
 
 class Register_file(object):
     # 寄存器堆
-    def __init__(self, DATA_SEGMENT, CODE_SEGMENT, STACK_SEGMENT, EXTRA_SEGMENT):
+    def __init__(self, DS_START, CS_START, SS_START, ES_START):
         # General Purpose Registers
         self.GR = General_register(["AX","BX","CX","DX"])
         # Segment Registers
-        self.DS = Register(DATA_SEGMENT / 16)
-        self.CS = Register(CODE_SEGMENT / 16)
-        self.SS = Register(STACK_SEGMENT / 16)
-        self.ES = Register(EXTRA_SEGMENT / 16)
+        self.DS = Register(DS_START)
+        self.CS = Register(CS_START)
+        self.SS = Register(SS_START)
+        self.ES = Register(ES_START)
         # Pointers and Index Registers
         self.SP = Register()
         self.BP = Register()

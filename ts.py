@@ -49,3 +49,11 @@ def str_to_hex(string):
 
 # if __name__=="__main__":
 #     pythonReSubDemo()
+
+a = list(range(5))
+
+print(a)
+for i, v in enumerate(a):
+    if v == 3:
+        a[i] = 4
+print(a)

@@ -2,7 +2,8 @@ import re
 import os
 import sys
 import ast
-from instructions import all_ins
+from pprint import pprint
+from instructions import all_ins,transfer_control_ins 
 
 data_def_ins = ['DB', 'DW', 'DD', 'DQ', 'DT', 'DUP']
 
@@ -36,33 +37,85 @@ class Assembler(object):
         self.name = ''
         self.title = ''
         self.space = {} # 段空间
-        self.seg_adr = {'DS': ds_adr // 16, 'CS': cs_adr // 16, 'SS': ss_adr // 16, 'ES': es_adr // 16}
+        self.seg_adr = {'DS': hex(ds_adr), 'CS': hex(cs_adr), 'SS': hex(ss_adr), 'ES': hex(es_adr)}
         self.seg_id = {}
         self.tags = {} # 标号
         self.vars = {} # 变量
-        self.ip = 0
+        self.ip = 0    # 程序入口offset
         self.ins_origin = [] # 未转换和分割的原始指令
 
     def compile(self, file_name):
         instructions = self.__preprocessing(file_name)
         for ip in range(len(instructions)):
             ins = instructions[ip]
-            if ins[0] == 'NAME':
-                self.name = ins[1]
-            elif ins[0] == 'TITLE':
+            if ins[0] == 'NAME': # 模块名
+                self.name = ins[1] 
+            elif ins[0] == 'TITLE': # 文件名
                 self.title = ins[1]
             elif ins[0] == 'ASSUME': # ASSUME必须在段之前
                 self.__assume(ins[1:])
             elif len(ins) > 1 and ins[1] == 'SEGMENT':
                 ip = self.__segment(instructions, ip)
+            elif ins[0] == 'END':
+                self.ip = self.tags[ins[1]]['offset']
+
+        self.__eval_id()
+
         print()
         for key, val in self.space.items():
-            print(key,':\n', val[:80])
+            print(key,':')
+            pprint(val[:80], compact=True)
             print()
-        print(self.tags)
-        print(self.vars)
+        print("seg_id:",self.seg_id)
+        print("tags:")
+        pprint(self.tags)
+        print("vars:")
+        pprint(self.vars)
+        print("ip:", self.ip)
         sys.exit(0)
         return self
+
+    def __eval_id(self):
+        # 给出标号（用于jmp loop）和变量
+        var_dict = {}
+        for key, val in self.seg_id.items():
+            var_dict[key] = self.seg_adr[val] # 段名解释为段地址
+        for key, val in self.vars.items():
+            var_dict[key] = hex(int(val['seg'], 16) * 16 + int(val['offset'], 16)) # 变量解释为真实地址
+        print("var_dict:", var_dict)
+        for key, val in self.space.items(): # 遍历每个段
+            for i in range(len(self.space[key])): # 遍历每行代码
+                ins = self.space[key][i]
+                if ins:
+                    if ins[0] in transfer_control_ins and ins[-1] in self.tags.keys():
+                        # jmp/call 空/short tag -> jmp/call tag.offset
+                        # loop/jcxz tag -> loop/jcxz tag.offset
+                        # jmp/call near ptr tag -> jmp/call tag.offset
+                        # jmp/call far ptr tag -> jmp/call tag.seg:tag.offset
+                        for s in ['SHORT', 'NEAR', 'PTR']:
+                            if s in ins:
+                                self.space[key][i].remove(s)
+                        if ins[1] == 'FAR':
+                            self.space[key][i].remove('FAR')
+                            dst = self.tags[ins[1]]['seg'] + ':' + self.tags[ins[1]]['offset']
+                            self.space[key][i][1] = dst
+                        else:
+                            self.space[key][i][1] = self.tags[ins[1]]['offset']
+                    j = 0
+                    while j < len(ins):
+                        for s in ['REG', 'OFFSET', 'TYPE']:
+                            if ins[j] == s:
+                                self.space[key][i].remove(s)
+                                self.space[key][i][j] = self.tags[ins[j]][s.lower()] 
+                        for k, v in var_dict.items():
+                            if ins[j] == k:
+                                self.space[key][i][j] = '[' + v + ']'
+                            elif ins[j][:len(k)] == k and ins[j][len(k)] == '[':
+                                self.space[key][i][j] = '[' + v + '+' + ins[j][len(k)+1:]
+                        j += 1
+                        # 变量：MOV BX,A[SI]  A = a.seg*16 + a.offset
+                        # 变量：add ax, Item  Item = [a.seg*16 + a.offset]
+                        # 段名：MOV AX,DRG     
 
     def __segment(self, instructions, ip):
         seg_ip = 0
@@ -93,7 +146,7 @@ class Assembler(object):
                 tag_list = ins[0].split(':')
                 tag = tag_list[0]
                 self.tags[tag] = {'seg': self.seg_adr[seg_name],
-                                  'offset': seg_ip,
+                                  'offset': hex(seg_ip),
                                   'type': 0} # unknown type TODO
                 if len(ins) == 1:                   # case1: start:\n mov ...
                     pass
@@ -112,7 +165,7 @@ class Assembler(object):
             elif len(ins) > 3 and ins[1] in data_def_ins:
                 var = ins[0]
                 self.vars[var] = {'seg': self.seg_adr[seg_name],
-                                  'offset': seg_ip,
+                                  'offset': hex(seg_ip),
                                   'type': 0}      # var type TODO
                 var_ori = ins_ori.split()[0] # 实际的变量名（未转换大小写）
                 byte_list = self.__data_define(ins[1:], ins_ori.replace(var_ori, '', 1).strip())

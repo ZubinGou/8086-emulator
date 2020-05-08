@@ -3,12 +3,22 @@ assume cs:codesg,ds:datasg
 codesg segment ; for 
     inc ax
     buff db 'hello world!'
-    start:mov ax, 0123h;;t;sd 
+start: mov ax, 0123h;;t;sd 
     mov bx, 0456h
-    org 04h
+    jmp start
+    jmp short plc1
+plc1: jmp near ptr plc2
+plc2:
+jmp far ptr start
+
     well: add ax, bx
-    org 110B
-    add ax, ax
+    loop well
+    je well
+    ;org 110B
+    add ax, seg well
+    mov bx, offset plc1
+    mov ax, buff
+    mov cx, buff[SI]
 ;aaa
   test:
     mov ax, 4000h
