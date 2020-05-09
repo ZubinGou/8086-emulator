@@ -1,14 +1,16 @@
 assume cs:codesg,ds:datasg
-; this is add proc ;;
+
 codesg segment ; for 
-    inc ax
-    buff db 'hello world!'
-    start:mov ax, 0123h;;t;sd 
-    mov bx, 0456h
-    org 1ah
-    well: add ax, bx
-    org 11100B
-    add ax, [SI]
+start:    mov bx, 10
+    mov ah, [200+bx]
+    mov ax, 200[bx]
+    mov ax, [bx].200
+    mov ax, 0x2000[bx]
+    mov ax, 200[bx][si]
+    mov ax,[bx].200[si]
+    mov ax,[bx][si][.200]
+    mov ds:[40H],ax
+    mov ax,es:[bx]
 ;aaa
   test:
     mov ax, $

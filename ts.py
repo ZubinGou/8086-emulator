@@ -2,6 +2,7 @@ import re
 import ast
 import sys
 from assembler import to_decimal
+from register import Register
 
 def to_int_str(matched):
     string = matched.group().strip(' ,')
@@ -33,23 +34,6 @@ def str_to_hex(string):
             sys.exit("Compile Error: str to hex")
     return store_list
 
-
-# def pythonReSubDemo():
-#     inputStr = "hello 123 world 456"
-#     replacedStr = re.sub("(?P<number>\d+)", _add111, inputStr)
-#     print("replacedStr=",replacedStr)#hello 234 world 567
-
-# def _add111(matched):
-#     print(matched.group())
-#     intStr = matched.group("number") #123
-#     intValue = int(intStr)
-#     addedValue = intValue + 111         #234
-#     addedValueStr = str(addedValue)
-#     return addedValueStr
-
-# if __name__=="__main__":
-#     pythonReSubDemo()
-
 a = list(range(5))
 
 print(a)
@@ -57,3 +41,36 @@ for i, v in enumerate(a):
     if v == 3:
         a[i] = 4
 print(a)
+
+print(to_decimal(0x123))
+print(to_decimal('0x123'))
+print(to_decimal(hex(123)))
+print(hex(to_decimal('7123h')))
+print(int(0x2000))
+
+x = Register(2333)
+
+print(x.hex)
+print(x.to_bytes(8, 'big'))
+print(bin(x.high))
+print(bin(x.low))
+# x = 123
+x = x.write_high(1)
+print(x)
+print(len(x))
+reg = {
+            # Data Register
+            'AX': 0,
+            'BX': 0,
+            'CX': 0,
+            'DX': 0,
+            # Pointer Register
+            'SP': 0,
+            'BP': 0,
+            # Index Register
+            'SI': 0,
+            'DI': 0
+        }
+print(list(reg.keys()))
+print(int('0X2000', 16))
+print(to_decimal('0X2000'))

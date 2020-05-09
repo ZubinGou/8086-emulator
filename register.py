@@ -39,11 +39,89 @@ class Register(int):
     def __repr__(self):
         return "%d" % int(self)
 
+    def __len__(self):
+        return self.bit_length()
+    
+    def __add__(self, other):
+        res = super(Register, self).__add__(other)
+        return self.__class__(res)
+
+    def __sub__(self, other):
+        res = super(Register, self).__sub__(other)
+        return self.__class__(res)
+
+    def __mul__(self, other):
+        res = super(Register, self).__mul__(other)
+        return self.__class__(res)
+
+    def __div__(self, other):
+        res = super(Register, self).__div__(other)
+        return self.__class__(res)
+    
+    def __truediv__(self, other):
+        res = super(Register, self).__truediv__(other)
+        return self.__class__(res)
+    
+    def __floordiv__(self, other):
+        res = super(Register, self).__floordiv__(other)
+        return self.__class__(res)
+    
+    def __rshift__(self, other):
+        res = super(Register, self).__rshift__(other)
+        return self.__class__(res)
+
+    def __lshift__(self, other):
+        res = super(Register, self).__lshift__(other)
+        return self.__class__(res)
+    
+    def __and__(self, other):
+        res = super(Register, self).__and__(other)
+        return self.__class__(res)
+
+    def __or__(self, other):
+        res = super(Register, self).__or__(other)
+        return self.__class__(res)
+
+    def __neg__(self):
+        res = super(Register, self).__neg__()
+        return self.__class__(res)
+
+    def __pos__(self):
+        res = super(Register, self).__pos__()
+        return self.__class__(res)
+
+    def __invert__(self):
+        res = super(Register, self).__invert__()
+        return self.__class__(res)
+
+    @property
     def hex(self):
         return hex(self)
-    
+
+    @property
     def bin(self):
         return bin(self)
+
+    @property
+    def high(self):
+        return self >> 8 & 0xff
+    
+    @property
+    def low(self):
+        return self & 0xff
+
+    def write_high(self, num):
+        # 此处应有操作数检查
+        return self & 0xff + (num << 8)
+
+    def write_low(self, num):
+        # 此处应有操作数检查
+        return self & 0xff00 + num
+
+
+    # to_bytes(lenth=2, byteorder='little)
+    # is_integer()
+    # isascii()
 
 class Flag_register(object):
     # 标志寄存器

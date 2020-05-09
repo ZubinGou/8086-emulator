@@ -113,7 +113,7 @@ The 1Mb of accessible memory in the 8086 ranges from 00000 to FFFFF.
 #### Instruction Queue
 pre-fetches up to 6 instructions in advance。（之所以选择6字节长队列，是因为8086中任何指令所需的最大字节数都是这么长。）我们这里按照假设每次pre-fetch 6条指令。
   - BIU fills in the queue until the entire queue is full.（6 byte FIFO）
-  - BIU restarts filling in the queue when at least two locations of queue are vacant.
+  - BIU restarts filling in the queue when at least two locs of queue are vacant.
   - Pipelining：Fetching the next instruction (by BIU from CS) while executing the current instruction 。
   - Gets flushed whenever a branch instruction occurs.
 #### Segment General_registers

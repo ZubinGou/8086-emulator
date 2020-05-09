@@ -14,7 +14,7 @@ code segment
         mov al,00  
         
     l1:
-        add al,byte ptr[bx]
+        add al,byte ptr [bx]
         inc bx
         dec cl
         cmp cl,00

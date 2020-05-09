@@ -2,7 +2,7 @@ import re
 import sys
 import queue
 from assembler import Assembler
-from memory import Memory, Cache_memory
+from memory import Memory
 from register import Register_file
 from pipeline_units import bus_interface_unit, execution_unit
 from cpu import CPU
@@ -41,17 +41,17 @@ def main():
 
     print("starting...")
     
-    reg = Register_file(DS_START, CS_START, SS_START, ES_START)
+    # reg = Register_file(DS_START, CS_START, SS_START, ES_START)
     assembler = Assembler(DS_START, CS_START, SS_START, ES_START)
     exe_file = assembler.compile(sys.argv[1])
     memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
     memory.load(exe_file) # load code segment
 
-    cache = Cache_memory(CACHE_SIZE)
-    cache.space = memory.space[reg.CS:(reg.CS+SEGMENT_SIZE)]
+    # cache = Cache_memory(CACHE_SIZE)
+    # cache.space = memory.space[reg.CS:(reg.CS+SEGMENT_SIZE)]
 
-    BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, reg, cache, memory)
-    EU = execution_unit.execution_unit(reg, BIU)
+    BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, exe_file, memory)
+    EU = execution_unit.execution_unit(BIU)
 
     cpu = CPU(BIU, EU)
     print("CPU initialized successfully.")

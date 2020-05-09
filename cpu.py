@@ -40,17 +40,22 @@ class CPU(object):
     def print_state(self):
         # 打印运行时状态
         print()
-        print("cache memory:")
-        pprint(self.BIU.cache.space[:100], compact=True)
+        print("CS:IP memory:")
+        pprint(self.BIU.memory.space[self.BIU.cs_ip(): self.BIU.cs_ip() + 10], compact=True)
+        print()
+        print("DS memory:")
+        pprint(self.BIU.memory.space[self.BIU.reg['DS']*16: self.BIU.reg['DS']*16 + 20], compact=True)
         print()
         print("pipeline:")
         pprint(list(self.BIU.instruction_queue.queue))
         print()
         print("registers:")
-        print("IP: ", self.BIU.IP)
+        for key, val in self.BIU.reg.items():
+            print(key, '0x%04x' % val)
+        print()
+        for key, val in self.EU.reg.items():
+            print(key, '0x%04x' % val)
         print("IR: ", self.EU.IR)
-        for reg in self.EU.GR.list:
-            print(f"{reg}: ", self.EU.GR.read(reg))
         print('-'*80)
     
     def print_end_state(self):

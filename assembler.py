@@ -18,6 +18,13 @@ def to_int_str(matched):
 
 def to_decimal(num):
     # all kinds of string of num to decimal
+    print(f"converting {num} to decimal")
+    if isinstance(num, int):
+        return int(num)
+    if num.startswith('0x'):
+        return int(num, 16)
+    if num.startswith('0X'):
+        return int(num[2:], 16)
     num = num.upper()
     if num[-1] == 'B':
         res = int(num.rstrip('B'), 2)
@@ -38,10 +45,10 @@ class Assembler(object):
         self.title = ''
         self.space = {} # 段空间
         self.seg_adr = {'DS': hex(ds_adr), 'CS': hex(cs_adr), 'SS': hex(ss_adr), 'ES': hex(es_adr)}
-        self.seg_id = {}
+        self.seg_id = {} # 段名
         self.tags = {} # 标号
         self.vars = {} # 变量
-        self.ip = 0    # 程序入口offset
+        self.ip = '0'    # 程序入口offset
         self.ins_origin = [] # 未转换和分割的原始指令
 
     def compile(self, file_name):
@@ -78,9 +85,13 @@ class Assembler(object):
         # 给出标号（用于jmp loop）和变量
         var_dict = {}
         for key, val in self.seg_id.items():
-            var_dict[key] = self.seg_adr[val] # 段名解释为段地址
+            var_dict[key] = str(self.seg_adr[val]) # 段名解释为段地址
         for key, val in self.vars.items():
-            var_dict[key] = hex(int(val['seg'], 16) * 16 + int(val['offset'], 16)) # 变量解释为真实地址
+            # var_dict[key] = hex(int(val['seg'], 16) * 16 + int(val['offset'], 16)) # 变量解释为真实地址
+            for k, v in self.seg_adr.items():
+                if v == val['seg']:
+                    seg_name = k
+            var_dict[key] = seg_name + ':[' + str(hex(int(val['offset'], 16))) + ']' # 变量解释为偏移地址
         print("var_dict:", var_dict)
         for key, val in self.space.items(): # 遍历每个段
             for i in range(len(self.space[key])): # 遍历每行代码
@@ -105,23 +116,27 @@ class Assembler(object):
                         for s in ['REG', 'OFFSET', 'TYPE']:
                             if ins[j] == s:
                                 self.space[key][i].remove(s)
-                                self.space[key][i][j] = self.tags[ins[j]][s.lower()] 
+                                if ins[j] in self.vars.keys():
+                                    self.space[key][i][j] = self.vars[ins[j]][s.lower()] 
+                                else:
+                                    self.space[key][i][j] = self.tags[ins[j]][s.lower()] 
+                        # 替换变量和标号
                         for k, v in var_dict.items():
                             if ins[j] == k:
-                                self.space[key][i][j] = '[' + v + ']'
+                                self.space[key][i][j] = v
                             elif ins[j][:len(k)] == k and ins[j][len(k)] == '[':
-                                self.space[key][i][j] = '[' + v + '+' + ins[j][len(k)+1:]
+                                self.space[key][i][j] = v + ins[j][len(k):]
                         j += 1
                         # 变量：MOV BX,A[SI]  A = a.seg*16 + a.offset
                         # 变量：add ax, Item  Item = [a.seg*16 + a.offset]
-                        # 段名：MOV AX,DRG     
+                        # 段名：MOV AX,DRG    ORG = org.seg
 
     def __segment(self, instructions, ip):
         seg_ip = 0  # 当前段偏移量，即'$' 
         seg_ins = instructions[ip]
         seg_tmp = seg_ins[0]
         seg_name = self.seg_id[seg_tmp] # CS DS SS ES
-        self.space[seg_name] = [0] * int('10000', 16)
+        self.space[seg_name] = ['0'] * int('10000', 16)
         for i in range(ip+1, len(instructions)):
             ins = instructions[i]
             for j in range(len(ins)):
@@ -163,7 +178,7 @@ class Assembler(object):
                 byte_list = self.__data_define(ins, ins_ori)
                 self.space[seg_name][seg_ip:seg_ip+len(byte_list)] = byte_list
                 seg_ip += len(byte_list)
-            elif len(ins) > 3 and ins[1] in data_def_ins:
+            elif len(ins) > 2 and ins[1] in data_def_ins:
                 var = ins[0]
                 self.vars[var] = {'seg': self.seg_adr[seg_name],
                                   'offset': hex(seg_ip),
@@ -207,7 +222,8 @@ class Assembler(object):
         # print("bytes_list: ", byte_list)
         return byte_list
 
-    def __str_to_bytes(self, string):
+    @classmethod
+    def __str_to_bytes(cls, string):
         string = re.sub(r"[0-9A-Fa-f]+[HhBbOo]{1}[,\s\]]+", to_int_str, '[' + string + ']')
         str_list =  ast.literal_eval(string)
         byte_list = []
@@ -221,7 +237,8 @@ class Assembler(object):
                 sys.exit("Compile Error: str to hex")
         return byte_list
 
-    def __str_to_words(self, string):
+    @classmethod
+    def __str_to_words(cls, string):
         string = re.sub(r"[0-9A-Fa-f]+[HhBbOo]{1}[,\s\]]+", to_int_str, '[' + string + ']')
         str_list =  ast.literal_eval(string)
         byte_list = []
@@ -234,7 +251,8 @@ class Assembler(object):
                 sys.exit("Compile Error: str to hex")
         return byte_list
 
-    def __str_to_dwords(self, string):
+    @classmethod
+    def __str_to_dwords(cls, string):
         string = re.sub(r"[0-9A-F]+[HhBbOo]{1}[,\s\]]+", to_int_str, '[' + string + ']')
         str_list =  ast.literal_eval(string)
         byte_list = []

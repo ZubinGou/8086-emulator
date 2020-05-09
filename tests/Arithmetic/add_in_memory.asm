@@ -1,4 +1,4 @@
-;add a series of 10 bytes stores in the memory from locations
+;add a series of 10 bytes stores in the memory from locs
 ;20,000H to 20,009. Store the result immediately after the series.
 
 assume cs:code
