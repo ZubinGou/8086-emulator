@@ -113,7 +113,7 @@ class Assembler(object):
                             self.space[key][i][1] = self.tags[ins[1]]['offset']
                     j = 0
                     while j < len(ins):
-                        for s in ['REG', 'OFFSET', 'TYPE']:
+                        for s in ['SEG', 'OFFSET', 'TYPE']:
                             if ins[j] == s:
                                 self.space[key][i].remove(s)
                                 if ins[j] in self.vars.keys():

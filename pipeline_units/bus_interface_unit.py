@@ -15,6 +15,8 @@ class bus_interface_unit(object):
             'ES': int(exe.seg_adr['ES'], 16),
             'IP': int(exe.ip, 16)
         }
+        self.pre_fetch_ip = self.reg['IP']
+
         print("Initial DS:", hex(self.reg['DS']))
         print("Initial CS:", hex(self.reg['CS']))
         print("Initial SS:", hex(self.reg['SS']))
@@ -26,6 +28,10 @@ class bus_interface_unit(object):
     def cs_ip(self):
         return self.reg['CS'] * 16 + self.reg['IP']
 
+    @property
+    def cs_pre_ip(self):
+        return self.reg['CS'] * 16 + self.pre_fetch_ip
+
     def read_byte(self, loc):
         return self.memory.rb(loc)
     
@@ -36,7 +42,6 @@ class bus_interface_unit(object):
         # 返回list
         return self.read_byte(loc + 3) + self.read_byte(loc + 2) + \
                self.read_byte(loc + 1) + self.read_byte(loc)
-
 
     def write_byte(self, loc, content):
         # content可以为：int、list
@@ -71,19 +76,20 @@ class bus_interface_unit(object):
     
     def flush_pipeline(self):
         # 有分支时刷新pipeline
+        print("Flushing pipeline...")
         self.instruction_queue.queue.clear()
+        self.pre_fetch_ip = self.reg['IP']
 
     def remain_instruction(self):
         # 判断cache中是否有需要执行的指令
-        return not self.memory.is_null(self.cs_ip)
+        return not self.memory.is_null(self.cs_pre_ip)
 
     def fetch_one_instruction(self):
         # 取单条指令
-        instruction = self.memory.rb(self.cs_ip)
+        instruction = self.memory.rb(self.cs_pre_ip)
         self.instruction_queue.put(instruction)
-        self.reg['IP'] += 1
-        print("fetch 1 ins to queue")
-        print("pipeline:")
+        self.pre_fetch_ip += 1
+        print("Fetching one ins to pipeline:")
         pprint.pprint(list(self.instruction_queue.queue))
         print()
 
@@ -91,7 +97,7 @@ class bus_interface_unit(object):
         print("filling pipeline...")
         while not self.instruction_queue.full():
             # time.sleep(0.2)
-            if not self.memory.is_null(self.cs_ip):
+            if not self.memory.is_null(self.cs_pre_ip):
                 self.fetch_one_instruction()
             else:
                 break

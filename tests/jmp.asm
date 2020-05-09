@@ -1,28 +1,27 @@
 assume cs:codesg,ds:datasg
 ; this is add proc ;;
 codesg segment ; for 
-    inc ax
-    buff db 'hello world!'
-start: mov ax, 0123h;;t;sd 
-    mov bx, 0456h
-    jmp start
-    jmp short plc1
-plc1: jmp near ptr plc2
-plc2:
-jmp far ptr start
+        inc ax
+        buff db 'hello world!' ; 65 68 
+ start: mov ax, 0123h;;t;sd 
+        mov bx, 0456h
+        jmp hr1 
+  plc1: jmp near ptr plc2 ;0x10
+  plc2: jmp far ptr hr2 ;0x11
 
-    well: add ax, bx
-    loop well
-    je well
-    ;org 110B
-    add ax, seg well
-    mov bx, offset plc1
-    mov ax, buff
-    mov cx, buff[SI]
-;aaa
+  well: add ax, bx
+        loop plc2
+        
+        je well
+        ;org 110B
+  hr1:  add ax, seg well ;0x15
+        jmp short plc1 
+  hr2:  mov bx, offset plc1 ;0x17
+        mov ax, buff
+        mov cx, buff[SI]
   test:
-    mov ax, 4000h
-    int 21h
+        mov ax, 4000h
+        int 21h
 
 codesg ends
 

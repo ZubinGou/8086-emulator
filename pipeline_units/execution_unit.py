@@ -35,12 +35,10 @@ class execution_unit(object):
     def run(self):
         self.IR = self.bus.instruction_queue.get()
         self.opcode = self.IR[0]
+        self.bus.reg['IP'] += 1
         if len(self.IR) > 1:
             self.opd = self.IR[1:]
         self.__get_opbyte()
-
-        # self.instruction_decoder()
-        # self.evaluate_all_opd()
         self.control_circuit()
 
     def __get_opbyte(self):
@@ -344,6 +342,7 @@ class execution_unit(object):
             sys.exit("operation code not support")
 
     def transfer_control_ins(self):
+        old_cs_ip = self.bus.cs_ip
         if self.opcode == 'JMP':
             # self.opbyte = 2
             if self.is_mem(self.opd[0]): # jmp word/dword ptr [adr]
@@ -408,6 +407,9 @@ class execution_unit(object):
             pass
         else:
             sys.exit("operation code not support")
+        print(f"old_cs_ip: {hex(old_cs_ip)}, cs_ip: {hex(self.bus.cs_ip)})")
+        if old_cs_ip != self.bus.cs_ip:
+            self.bus.flush_pipeline()
 
     def string_manipulation_ins(self):
         if self.opcode == 'MOVS':
