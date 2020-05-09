@@ -21,6 +21,5 @@ skip: mov result,ax
 
       int 03h
 
-end start
 code ends
-end
+end start

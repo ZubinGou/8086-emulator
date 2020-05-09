@@ -20,5 +20,5 @@ code segment
            mov rem,ah
            mov ah,4ch
            int 21h
-           code ends
+code ends
 end start

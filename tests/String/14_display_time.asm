@@ -1,3 +1,5 @@
+ASSUME CS:CODE, DS:DATA
+
 DATA SEGMENT
     
     MSG1 DB 'Current time is: $'
@@ -10,7 +12,6 @@ DATA ENDS
 
 CODE SEGMENT 
     
-    ASSUME CS:CODE, DS:DATA
     START: MOV AX, DATA
     MOV DS, AX
 

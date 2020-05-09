@@ -1,11 +1,11 @@
 ; Hello world!
+assume cs:code,ds:data
 
 data segment
     msg db "Hello,World!$"
 data ends
     
 code segment
-    assume cs:code,ds:data
     start: mov ax,data          ;intialize DS to address
            mov ds,ax            ;of data segment
            lea dx,msg           ;load effect address of message
