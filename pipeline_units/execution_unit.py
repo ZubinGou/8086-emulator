@@ -133,6 +133,9 @@ class execution_unit(object):
         # 寄存器
         if self.is_reg(opd):
             res = self.read_reg(opd)
+        # 若操作数为int也作为地址访问
+        elif isinstance(opd, int):
+            opd = '[' + str(opd) + ']'
         # 内存
         elif '[' in opd:
             if self.opbyte == 1:
@@ -308,10 +311,100 @@ class execution_unit(object):
         else:
             sys.exit("operation code not support")
 
+    @property
+    def ss_sp(self):
+        return self.ss_sp
+
+    def stack_related_ins(self):
+        if self.opcode == 'PUSH':
+            self.reg['SP'] -= 2
+            self.write_mem(self.ss_sp, self.get_int(self.opd[0]))
+        elif self.opcode == 'POP':
+            res_list = self.bus.read_word(self.ss_sp)
+            res = 0
+            for num in res_list:
+                res = (res << 8) + int(num, 16)
+            if self.is_mem(self.opd[0]):
+                ad = self.get_address(self.opd[0])
+                self.write_mem(ad,res)
+            elif self.is_reg(self.opd[0]):
+                self.write_reg(self.opd[0], res)
+            self.reg['SP'] += 2
+        elif self.opcode == 'PUSHF':
+            self.reg['SP'] -= 2
+            self.write_mem(self.ss_sp, self.FR.get_int())
+        elif self.opcode == 'POPF':
+            res_list = self.bus.read_word(self.ss_sp)
+            res = 0
+            for num in res_list:
+                res = (res << 8) + int(num, 16)
+            self.FR.set_int(res)
+            self.reg['SP'] += 2
+        else:
+            sys.exit("operation code not support")
+
     def transfer_control_ins(self):
         if self.opcode == 'JMP':
-            self.bus.IP = self.eo[0]
-        elif self.opcode == 'JA':
+            # self.opbyte = 2
+            if self.is_mem(self.opd[0]): # jmp word/dword ptr [adr]
+                adr = self.get_address(opd[0])
+                if self.opbyte == 4:
+                    self.opbyte = 2
+                    self.write_reg('CS', self.get_int(adr + 2))
+                self.write_reg('IP', self.get_int(adr))
+            elif ':' in self.opd[0]:    # jmp cs:ip
+                self.opd = [s for s in re.split(' |:', self.opd[0]) if s]
+                print(self.opd)
+                self.write_reg('CS', self.get_int(self.opd[0]))
+                self.write_reg('IP', self.get_int(self.opd[1]))
+            else:                       # jmp ip/reg
+                self.write_reg('IP', self.get_int(self.opd[0]))
+
+        elif self.opcode == 'LOOP':
+            self.reg['CX'] -= 1
+            if self.reg['CX'] > 0:
+                self.write_reg('IP', self.get_int(self.opd[0]))
+
+        elif self.opcode == 'LOOPE':
+            pass
+        elif self.opcode == 'LOOPNE':
+            pass
+        elif self.opcode == 'LOOPZ':
+            pass
+        elif self.opcode == 'LOOPNZ':
+            pass
+        elif self.opcode == 'CALL':
+            if self.opbyte == 4 or ':' in self.opcode[0]:
+                self.reg['SP'] -= 2
+                self.write_mem(self.bus.ss_sp, self.bus.reg['CS'])
+            self.reg['SP'] -= 2
+            self.write_mem(self.bus.ss_sp, self.bus.reg['IP'])
+            self.opcode = 'JMP'
+            self.control_circuit()
+
+        elif self.opcode == 'RET':
+            self.write_reg('IP', self.bus.ss_sp)
+            self.reg['SP'] += 2
+
+        elif self.opcode == 'RETF':
+            self.write_reg('IP', self.bus.ss_sp)
+            self.reg['SP'] += 2
+            self.write_reg('CS', self.bus.ss_sp)
+            self.reg['SP'] += 2
+
+        elif self.opcode == 'JA':   # 条件转移有没有更简单的算法？
+            pass
+        elif self.opcode == 'JAE':
+            pass
+        elif self.opcode == 'JB':
+            pass
+        elif self.opcode == 'JBE':
+            pass
+        elif self.opcode == 'JC':
+            pass
+        elif self.opcode == 'JCE':
+            pass
+        elif self.opcode == 'JCXZ':
             pass
         else:
             sys.exit("operation code not support")
@@ -340,37 +433,26 @@ class execution_unit(object):
         else:
             sys.exit("operation code not support")
 
+    # execution_unit 中的方法    
     def flag_manipulation_ins(self):
         if self.opcode == 'STC':
-            pass
+            self.FR.carry = 1
         elif self.opcode == 'CLC':
-            pass
+            self.FR.carry = 0
         elif self.opcode == 'CMC':
-            pass
+            self.FR.carry ^= 1
         elif self.opcode == 'STD':
-            pass
+            self.FR.direction = 1
         elif self.opcode == 'CLD':
-            pass
+            self.FR.direction = 0
         elif self.opcode == 'STI':
-            pass
+            self.FR.interrupt = 1
         elif self.opcode == 'CLI':
-            pass
+            self.FR.interrupt = 0
         elif self.opcode == 'LANF':
-            pass
+            self.write_reg('AH', self.FR.get_low())
         elif self.opcode == 'SANF':
-            pass
-        else:
-            sys.exit("operation code not support")
-
-    def stack_related_ins(self):
-        if self.opcode == 'PUSH':
-            pass
-        elif self.opcode == 'POP':
-            pass
-        elif self.opcode == 'PUSHF':
-            pass
-        elif self.opcode == 'POPF':
-            pass
+            self.FR.set_low(self.read_reg('AH'))
         else:
             sys.exit("operation code not support")
 

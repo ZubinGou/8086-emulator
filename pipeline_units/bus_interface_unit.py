@@ -23,6 +23,7 @@ class bus_interface_unit(object):
         print("Initial IP:", hex(self.reg['IP']))
         self.memory = memory # External bus to memory
 
+    @property
     def cs_ip(self):
         return self.reg['CS'] * 16 + self.reg['IP']
 
@@ -75,11 +76,11 @@ class bus_interface_unit(object):
 
     def remain_instruction(self):
         # 判断cache中是否有需要执行的指令
-        return not self.memory.is_null(self.cs_ip())
+        return not self.memory.is_null(self.cs_ip)
 
     def fetch_one_instruction(self):
         # 取单条指令
-        instruction = self.memory.rb(self.cs_ip())
+        instruction = self.memory.rb(self.cs_ip)
         self.instruction_queue.put(instruction)
         self.reg['IP'] += 1
         print("fetch 1 ins to queue")
@@ -91,7 +92,7 @@ class bus_interface_unit(object):
         print("filling pipeline...")
         while not self.instruction_queue.full():
             # time.sleep(0.2)
-            if not self.memory.is_null(self.cs_ip()):
+            if not self.memory.is_null(self.cs_ip):
                 self.fetch_one_instruction()
             else:
                 break

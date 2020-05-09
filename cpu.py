@@ -41,7 +41,7 @@ class CPU(object):
         # 打印运行时状态
         print()
         print("CS:IP memory:")
-        pprint(self.BIU.memory.space[self.BIU.cs_ip(): self.BIU.cs_ip() + 10], compact=True)
+        pprint(self.BIU.memory.space[self.BIU.cs_ip: self.BIU.cs_ip + 10], compact=True)
         print()
         print("DS memory:")
         pprint(self.BIU.memory.space[self.BIU.reg['DS']*16: self.BIU.reg['DS']*16 + 20], compact=True)
