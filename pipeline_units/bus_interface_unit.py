@@ -51,15 +51,15 @@ class bus_interface_unit(object):
     def write_word(self, loc, content): # little endian
         if isinstance(content, int):
             self.write_byte(loc, content & 0x0ff)
-            self.write_byte(loc + 1, content >> 8 & 0x0ff)
+            self.write_byte(loc + 1, (content >> 8) & 0x0ff)
         else:
             sys.exit("Error write_byte")
 
     def write_dword(self, loc, content): # little endian
         if isinstance(content, int):
             self.write_byte(loc, content & 0x0ff) 
-            self.write_byte(loc + 1, content >> 8 & 0x0ff) 
-            self.write_byte(loc + 2, content >> 16 & 0x0ff)
+            self.write_byte(loc + 1, (content >> 8) & 0x0ff) 
+            self.write_byte(loc + 2, (content >> 16) & 0x0ff)
             self.write_byte(loc + 3, content >> 24)
         else:
             sys.exit("Error write_byte")

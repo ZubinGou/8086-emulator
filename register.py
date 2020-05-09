@@ -112,11 +112,11 @@ class Register(int):
 
     def write_high(self, num):
         # 此处应有操作数检查
-        return self & 0xff + (num << 8)
+        return (self & 0xff) + (num << 8)
 
     def write_low(self, num):
         # 此处应有操作数检查
-        return self & 0xff00 + num
+        return (self & 0xff00) + num
 
 
     # to_bytes(lenth=2, byteorder='little)

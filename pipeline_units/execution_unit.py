@@ -66,7 +66,7 @@ class execution_unit(object):
         if reg in self.biu_regs:
             res = self.bus.reg[reg]
         elif reg[1] == 'H':
-            res = self.reg[reg.replace('H', 'X')] >> 8 & 0xff
+            res = (self.reg[reg.replace('H', 'X')] >> 8) & 0xff
         elif reg[1] == 'L':
             res = self.reg[reg.replace('L', 'X')] & 0xff
         else:
@@ -79,10 +79,9 @@ class execution_unit(object):
             self.bus.reg[reg] = num
         elif reg[1] == 'H':
             reg = reg.replace('H', 'X')
-            self.reg[reg] = self.reg[reg] & 0xff + (num << 8)
+            self.reg[reg] = (self.reg[reg] & 0xff) + (num << 8)
         elif reg[1] == 'L':
             reg = reg.replace('L', 'X')
-            print("regs L: ", reg)
             self.reg[reg] = (self.reg[reg] & 0xff00) + num
         else:
             self.reg[reg] = num
@@ -157,6 +156,14 @@ class execution_unit(object):
         print("get_int", hex(res), "from", opd)
         return res
 
+    def put_int(self, opd, num):
+        # 自动将num存储到opd（寄存器或者存储器）
+        if self.is_reg(opd):
+            self.write_reg(opd, num)
+        elif self.is_mem(opd):
+            adr = self.get_address(opd)
+            self.write_mem(adr, num)
+
     def is_reg(self, opd):
         return opd in (self.eu_regs + self.biu_regs)
     
@@ -201,14 +208,14 @@ class execution_unit(object):
     def data_transfer_ins(self):
         if self.opcode == 'MOV':
             res = self.get_int(self.opd[1])
-            if self.is_reg(self.opd[0]):
-                self.write_reg(self.opd[0], res)
-            elif self.is_mem(self.opd[0]):
-                adr = self.get_address(self.opd[0])
-                self.write_mem(adr, res)
+            self.put_int(self.opd[0], res)
 
         elif self.opcode == 'XCHG':
-            pass
+            res1 = self.get_int(self.opd[0])
+            res2 = self.get_int(self.opd[1])
+            self.put_int(self.opd[0], res2)
+            self.put_int(self.opd[1], res1)
+
         elif self.opcode == 'LEA':
             pass
         elif self.opcode == 'LDS':
@@ -220,47 +227,56 @@ class execution_unit(object):
 
     def arithmetic_ins(self):
         if self.opcode == 'ADD':
-            result = self.eo[0] + self.eo[1]
-            pass
+            res1 = self.get_int(self.opd[0])
+            res2 = self.get_int(self.opd[1])
+            self.put_int(self.opd[0], res1 + res2)
 
         elif self.opcode == 'SUB':
-            result = self.eo[0] - self.eo[1]
-            self.GR.write(self.opd[0], result)
+            res1 = self.get_int(self.opd[0])
+            res2 = self.get_int(self.opd[1])
+            self.put_int(self.opd[0], res1 - res2)
 
         elif self.opcode == 'MUL': 
-            result = self.eo[0] * self.GR.read_int('AX')
-            self.GR.write('AX', result)
+            pass
 
         elif self.opcode == 'DIV':
-            divisor = self.eo[0]
-            divident = int(self.GR.read('AX'))
-            quotient = divident // divisor
-            remainder = divident % divisor
-            self.GR.write('AX', quotient)
-            self.GR.write('DX', remainder)
+            pass
         
         elif self.opcode == 'INC':
-            result = self.eo[0] + 1
-            self.GR.write(self.opd[0], result)
+            res1 = self.get_int(self.opd[0])
+            self.put_int(self.opd[0], res1 + 1)
 
         elif self.opcode == 'DEC':
-            result = self.eo[0] - 1
-            self.GR.write(self.opd[0], result)
+            res1 = self.get_int(self.opd[0])
+            self.put_int(self.opd[0], res1 - 1)
 
         else:
             sys.exit("operation code not support")
 
     def logical_ins(self):
         if self.opcode == 'AND':
-            pass
+            res1 = self.get_int(self.opd[0])
+            res2 = self.get_int(self.opd[1])
+            self.put_int(self.opd[0], res1 & res2)
+
         elif self.opcode == 'OR':
-            pass
+            res1 = self.get_int(self.opd[0])
+            res2 = self.get_int(self.opd[1])
+            self.put_int(self.opd[0], res1 | res2)
+
         elif self.opcode == 'XOR':
-            pass
+            res1 = self.get_int(self.opd[0])
+            res2 = self.get_int(self.opd[1])
+            self.put_int(self.opd[0], res1 ^ res2)
+
         elif self.opcode == 'NOT':
-            pass
+            res1 = self.get_int(self.opd[0])
+            self.put_int(self.opd[0], ~res1)
+
         elif self.opcode == 'NEG':
-            pass
+            res1 = self.get_int(self.opd[0])
+            self.put_int(self.opd[0], ~res1 + 1)
+
         elif self.opcode == 'CPM':
             pass
         elif self.opcode == 'TEST':
@@ -270,7 +286,11 @@ class execution_unit(object):
 
     def rotate_shift_ins(self):
         if self.opcode == 'RCL':
-            pass
+            res1 = self.get_int(self.opd[0])
+            res2 = self.get_int(self.opd[1])
+            self.put_int(self.opd[0], res1 << res2)
+            # TODO flags
+
         elif self.opcode == 'RCR':
             pass
         elif self.opcode == 'ROL':
