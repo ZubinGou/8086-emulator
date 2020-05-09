@@ -5,5 +5,5 @@ code segment
            
            mov ax,4c00h      ;return to ms-dos
            int 21h           ;do it!
-     end start
 code ends
+end start

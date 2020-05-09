@@ -7,7 +7,7 @@ DATA SEGMENT
     DATA4 DW 0H    ;4
     DATA5 DW 2345H,6789;ARRAY
     db 'abcdefg hello world!'
-    DATA ENDS 
+DATA ENDS 
 
 ;DIFFERENT DATA IN DATA SEGMENT 
 
@@ -46,6 +46,5 @@ MORE:
     mov ax,[bx][si][.200]
     mov ds:[40H],ax
     mov ax,ds:[bx]
-    CODE ENDS 
+CODE ENDS 
 ENDS START 
-ENDS
