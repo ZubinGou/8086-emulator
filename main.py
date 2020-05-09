@@ -3,7 +3,6 @@ import sys
 import queue
 from assembler import Assembler
 from memory import Memory
-from register import Register_file
 from pipeline_units import bus_interface_unit, execution_unit
 from cpu import CPU
 
