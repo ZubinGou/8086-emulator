@@ -2,7 +2,6 @@ import re
 import ast
 import sys
 from assembler import to_decimal
-from register import Register
 
 def to_int_str(matched):
     string = matched.group().strip(' ,')

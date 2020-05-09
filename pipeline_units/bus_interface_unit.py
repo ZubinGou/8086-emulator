@@ -2,7 +2,6 @@ import sys
 import queue
 import time
 import pprint
-from register import Register
 
 class bus_interface_unit(object):
 
