@@ -1,11 +1,13 @@
 ;add a series of 10 bytes stores in the memory from locs
 ;20,000H to 20,009. Store the result immediately after the series.
+NAME Arithmetic
+TITLE add_in_memory
 
 assume cs:code
 
 CODE SEGMENT
     
-        mov ax,2000H
+start:  mov ax,2000H
         mov ds,ax
     
         mov si,0000H    ;starting offset address = 0000H
@@ -21,4 +23,5 @@ skip:   inc si          ;point to next offset
         mov [si],ax     ;store final result in 20,009H
         
         HLT 
-CODE ENDS                                               
+CODE ENDS    
+END START                                           

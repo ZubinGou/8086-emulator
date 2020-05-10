@@ -1,3 +1,6 @@
+NAME Arithmetic
+TITLE divide_16b_by_8b
+
 assume cs:code,ds:data
 
 data segment

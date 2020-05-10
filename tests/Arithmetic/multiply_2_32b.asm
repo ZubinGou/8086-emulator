@@ -1,3 +1,6 @@
+NAME Arithmetic
+TITLE multiply_2_32b
+
 assume cs:code, ds:data
 
 data segment; data segment starts

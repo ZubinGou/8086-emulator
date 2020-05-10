@@ -1,9 +1,13 @@
+NAME String
+TITLE display_string
+
+assume cs:code,ds:data
+
 data segment
     message db "Hello World This is a test $"
 data ends
 
 code segment
-    assume cs:code,ds:data
 start: mov ax,data
        mov ds,ax
        mov ah,09h

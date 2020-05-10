@@ -1,3 +1,6 @@
+NAME Data_transfer
+TITLE address_mode
+
 ASSUME CS:CODE , DS:DATA
 
 DATA SEGMENT 

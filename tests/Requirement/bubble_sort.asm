@@ -1,5 +1,8 @@
 ;ALP to Sort a set of unsigned integer numbers in ascending/ descending
 ;order using Bubble sort algorithm.
+NAME Requirement
+TITLE bubble_sort
+
 ASSUME CS:CODE,DS:DATA
 
 DATA SEGMENT

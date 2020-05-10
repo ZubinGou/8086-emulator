@@ -1,4 +1,7 @@
 ;write a program to find the highest among 5 grades.
+NAME Arithmetic
+TITLE find_largest
+
 assume cs:code, ds:data
 
 data segment

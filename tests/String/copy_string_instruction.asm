@@ -1,6 +1,9 @@
 ;ALP to copy the string of successive memory locations from one memory to
 ;other
 ;Using string instructions
+NAME String
+TITLE copy_string_instruction
+
 ASSUME CS:CODE , DS:DATA, ES:EXTRA
 
 DATA SEGMENT

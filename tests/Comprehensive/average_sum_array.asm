@@ -1,4 +1,7 @@
 ;A program in assembly language to calculate the average of numbers in an array.
+NAME Comprehensive
+TITLE average_sum_array
+
 ASSUME DS:DATA CS:CODE
 
 DATA SEGMENT

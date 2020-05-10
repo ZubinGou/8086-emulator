@@ -1,4 +1,7 @@
 ; Code for Program to Calculate power(a,b) i.e a^b in Assembly Language
+NAME Comprehensive
+TITLE power
+
 ASSUME CS:CODE,DS:DATA
 DATA SEGMENT
         BASE DB ?

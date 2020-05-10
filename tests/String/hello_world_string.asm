@@ -1,4 +1,7 @@
 ; Hello world!
+NAME String
+TITLE hello_world_string
+
 assume cs:code,ds:data
 
 data segment
