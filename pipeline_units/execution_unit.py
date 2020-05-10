@@ -107,6 +107,23 @@ class execution_unit(object):
         print("Get Address", hex(address), "from opd", opd)
         return address
 
+    def get_offset(self, opd):
+        # 解析所有内存寻址：直接、寄存器间接、基址、变址、基址变址、相对基址变址
+        # lea 0x3412:0x34; lea [si+bx]; lea 0x12; lea ss:offset; lea [bx][di]
+        adr_reg = ['BX', 'SI', 'DI', 'BP']
+        seg_reg = ['DS', 'CS', 'SS', 'ES']
+        opd = opd.split(':')[-1] # 去掉段前缀
+        par_list = [s for s in re.split('\W', opd) if s]
+        offset = 0
+        for par in par_list:
+            if par in adr_reg:
+                offset += self.read_reg(par)
+            elif par in seg_reg:
+                pass
+            else:
+                offset += to_decimal(par)
+        return offset
+
     def __get_byte(self, opd):
         # 内存寻址 含有 '[]'
         address = self.get_address(opd)
@@ -218,7 +235,9 @@ class execution_unit(object):
             self.put_int(self.opd[1], res1)
 
         elif self.opcode == 'LEA':
-            pass
+            adr = self.get_offset(opd[1])
+            self.put_int(self.opd[0], adr)
+
         elif self.opcode == 'LDS':
             pass
         elif self.opcode == 'LES':
@@ -311,7 +330,7 @@ class execution_unit(object):
 
     @property
     def ss_sp(self):
-        return self.ss_sp
+        return self.bus.reg['SS'] * 16 + self.reg['SP']
 
     def stack_related_ins(self):
         if self.opcode == 'PUSH':

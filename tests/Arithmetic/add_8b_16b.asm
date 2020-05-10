@@ -1,4 +1,6 @@
-NAME 
+NAME Arithmetic
+TITLE add_8b_16b
+; test passed
 
 ASSUME CS:CODE,DS:DATA
 

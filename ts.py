@@ -47,16 +47,6 @@ print(to_decimal(hex(123)))
 print(hex(to_decimal('7123h')))
 print(int(0x2000))
 
-x = Register(2333)
-
-print(x.hex)
-print(x.to_bytes(8, 'big'))
-print(bin(x.high))
-print(bin(x.low))
-# x = 123
-x = x.write_high(1)
-print(x)
-print(len(x))
 reg = {
             # Data Register
             'AX': 0,
@@ -73,3 +63,8 @@ reg = {
 print(list(reg.keys()))
 print(int('0X2000', 16))
 print(to_decimal('0X2000'))
+
+
+opd = '0x1234:0x34'
+opd = opd.split(':')[-1]
+print(opd)

@@ -91,7 +91,7 @@ class Assembler(object):
             for k, v in self.seg_adr.items():
                 if v == val['seg']:
                     seg_name = k
-            var_dict[key] = seg_name + ':[' + str(hex(int(val['offset'], 16))) + ']' # 变量解释为偏移地址
+            var_dict[key] = seg_name + ':[' + str(hex(int(val['offset'], 16))) + ']' # 变量解释为“段地址：偏移地址”
         print("var_dict:", var_dict)
         for key, val in self.space.items(): # 遍历每个段
             for i in range(len(self.space[key])): # 遍历每行代码
