@@ -17,7 +17,7 @@ start:  mov ax,data
         mov cx,0010H            ;16 bytes of data
         mov dx,0000H            ;dx initialized to store numbers
     
-back:   mov dl,byte ptr[bx]     ;transfer string to al
+back:   mov dl,byte ptr [bx]     ;transfer string to al ;0x6
         
         mov ax,2000H            ;change segment
         mov ds,ax
@@ -47,7 +47,7 @@ back:   mov dl,byte ptr[bx]     ;transfer string to al
         mov bl, 00h              ;bl stores highest number
         mov si, 5000H            ;si points to first number
 
-up:     mov al,byte ptr[SI]      ;compare next number to highest
+up:     mov al,byte ptr [SI]      ;compare next number to highest
         cmp al, bl               
         jl nxt                   ;jump if al is still the highest
         mov bl, al               ;else bl holds new highest

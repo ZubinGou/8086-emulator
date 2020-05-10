@@ -47,7 +47,7 @@ class execution_unit(object):
             if pr in ['AL', 'AH', 'BL', 'BH', 'CL', 'CH', 'DL', 'DH']:
                 self.opbyte = 1
         if 'PTR' in self.opd:
-            self.opd.remove['PTR']
+            self.opd.remove('PTR')
             if 'BYTE' in self.opd:
                 self.opbyte = 1
                 self.opd.remove('BYTE')
@@ -145,12 +145,12 @@ class execution_unit(object):
     
     def get_int(self, opd):
         # 自动获取操作数值
+        # 若opd为int也作为地址访问
+        if isinstance(opd, int):
+            opd = '[' + str(opd) + ']'
         # 寄存器
         if self.is_reg(opd):
             res = self.read_reg(opd)
-        # 若操作数为int也作为地址访问
-        elif isinstance(opd, int):
-            opd = '[' + str(opd) + ']'
         # 内存
         elif '[' in opd:
             if self.opbyte == 1:
@@ -235,13 +235,18 @@ class execution_unit(object):
             self.put_int(self.opd[1], res1)
 
         elif self.opcode == 'LEA':
-            adr = self.get_offset(opd[1])
+            adr = self.get_offset(self.opd[1])
             self.put_int(self.opd[0], adr)
 
         elif self.opcode == 'LDS':
-            pass
+            adr = self.get_address(self.opd[1])
+            self.write_reg(self.opd[0], self.get_int(adr))
+            self.write_reg('DS', self.get_int(adr + 2))
+
         elif self.opcode == 'LES':
-            pass
+            adr = self.get_address(self.opd[1])
+            self.write_reg(self.opd[0], self.get_int(adr))
+            self.write_reg('ES', self.get_int(adr + 2))
         else:
             pass        
 
@@ -364,33 +369,35 @@ class execution_unit(object):
         old_cs_ip = self.bus.cs_ip
         if self.opcode == 'JMP':
             # self.opbyte = 2
-            if self.is_mem(self.opd[0]): # jmp word/dword ptr [adr]
+            if self.is_mem(self.opd[0]): # 转移地址在内存：jmp word/dword ptr [adr]
                 adr = self.get_address(opd[0])
                 if self.opbyte == 4:
                     self.opbyte = 2
                     self.write_reg('CS', self.get_int(adr + 2))
                 self.write_reg('IP', self.get_int(adr))
-            elif ':' in self.opd[0]:    # jmp cs:ip
+            elif ':' in self.opd[0]:    # 长转移：jmp cs:ip
                 self.opd = [s for s in re.split(' |:', self.opd[0]) if s]
                 print(self.opd)
                 self.write_reg('CS', self.get_int(self.opd[0]))
                 self.write_reg('IP', self.get_int(self.opd[1]))
-            else:                       # jmp ip/reg
+            else:                     # 短转移、近转移、寄存器转移 jmp ip/reg
                 self.write_reg('IP', self.get_int(self.opd[0]))
 
         elif self.opcode == 'LOOP':
             self.reg['CX'] -= 1
-            if self.reg['CX'] > 0:
+            if self.reg['CX'] != 0:
                 self.write_reg('IP', self.get_int(self.opd[0]))
 
-        elif self.opcode == 'LOOPE':
-            pass
-        elif self.opcode == 'LOOPNE':
-            pass
-        elif self.opcode == 'LOOPZ':
-            pass
-        elif self.opcode == 'LOOPNZ':
-            pass
+        elif self.opcode in ['LOOPE', 'LOOPZ']:
+            self.reg['CX'] -= 1
+            if self.reg['CX'] != 0 and self.FR.zero == 1:
+                self.write_reg('IP', self.get_int(self.opd[0]))
+
+        elif self.opcode in ['LOOPNE', 'LOOPNZ']:
+            self.reg['CX'] -= 1
+            if self.reg['CX'] != 0 and self.FR.zero == 0:
+                self.write_reg('IP', self.get_int(self.opd[0]))
+
         elif self.opcode == 'CALL':
             if self.opbyte == 4 or ':' in self.opcode[0]:
                 self.reg['SP'] -= 2
@@ -401,32 +408,57 @@ class execution_unit(object):
             self.control_circuit()
 
         elif self.opcode == 'RET':
-            self.write_reg('IP', self.bus.ss_sp)
+            self.write_reg('IP', self.get_int(self.ss_sp))
             self.reg['SP'] += 2
 
         elif self.opcode == 'RETF':
-            self.write_reg('IP', self.bus.ss_sp)
+            self.write_reg('IP', self.get_int(self.ss_sp))
             self.reg['SP'] += 2
-            self.write_reg('CS', self.bus.ss_sp)
+            self.write_reg('CS', self.ss_sp)
             self.reg['SP'] += 2
 
-        elif self.opcode == 'JA':   # 条件转移有没有更简单的算法？
-            pass
-        elif self.opcode == 'JAE':
-            pass
-        elif self.opcode == 'JB':
-            pass
-        elif self.opcode == 'JBE':
-            pass
-        elif self.opcode == 'JC':
-            pass
-        elif self.opcode == 'JCE':
-            pass
-        elif self.opcode == 'JCXZ':
-            pass
+        elif self.opcode in conditional_jump_ins:
+            # 所有条件转移都是短转移 
+            jmp_map = {
+                'JA':  self.FR.carry == 0 and self.FR.zero == 0,
+                'JAE': self.FR.carry == 0,
+                'JB': self.FR.carry == 1,
+                'JBE': self.FR.carry == 0 and self.FR.zero == 1,
+                'JC': self.FR.carry == 1,
+                'JCXZ': self.reg['CX'] == 0,
+                'JE': self.FR.zero == 1,
+                'JG': self.FR.zero == 0 and self.FR.sign == self.FR.overflow,
+                'JGE': self.FR.sign == self.FR.overflow,
+                'JL': self.FR.sign != self.FR.overflow,
+                'JLE': self.FR.sign != self.FR.overflow or self.FR.zero == 1, 
+                'JNA': self.FR.carry == 1 or self.FR.zero == 1,
+                'JNAE': self.FR.carry == 1,
+                'JNB': self.FR.carry == 0,
+                'JNBE': self.FR.carry == 0 and self.FR.zero == 0,
+                'JNC': self.FR.carry == 0,
+                'JNE': self.FR.zero == 0,
+                'JNG': self.FR.zero == 1 and self.FR.sign != self.FR.overflow,
+                'JNGE': self.FR.sign != self.FR.overflow,
+                'JNL': self.FR.sign == self.FR.overflow,
+                'JNLE': self.FR.sign == self.FR.overflow and self.FR.zero == 0,
+                'JNO': self.FR.overflow == 0,
+                'JNP': self.FR.parity == 0,
+                'JNS': self.FR.sign == 0,
+                'JNZ': self.FR.zero == 0,
+                'JO': self.FR.overflow == 1,
+                'JP': self.FR.parity == 1,
+                'JPE': self.FR.parity == 1,
+                'JPO': self.FR.parity == 0,
+                'JS': self.FR.sign == 1,
+                'JZ': self.FR.zero == 1
+            }
+            if jmp_map[self.opcode]:
+                self.write_reg('IP', self.get_int(self.opd[0]))
+
         else:
             sys.exit("operation code not support")
-        print(f"old_cs_ip: {hex(old_cs_ip)}, cs_ip: {hex(self.bus.cs_ip)})")
+
+        print(f"old_cs_ip: {hex(old_cs_ip)}, new_cs_ip: {hex(self.bus.cs_ip)})")
         if old_cs_ip != self.bus.cs_ip:
             self.bus.flush_pipeline()
 
