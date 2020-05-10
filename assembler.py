@@ -18,7 +18,7 @@ def to_int_str(matched):
 
 def to_decimal(num):
     # all kinds of string of num to decimal
-    print(f"converting {num} to decimal")
+    # print(f"converting {num} to decimal")
     if isinstance(num, int):
         return int(num)
     if num.startswith('0x'):
@@ -136,7 +136,7 @@ class Assembler(object):
         seg_ins = instructions[ip]
         seg_tmp = seg_ins[0]
         seg_name = self.seg_id[seg_tmp] # CS DS SS ES
-        self.space[seg_name] = ['0'] * int('10000', 16)
+        self.space[seg_name] = [0] * int('10000', 16)
         for i in range(ip+1, len(instructions)):
             ins = instructions[i]
             for j in range(len(ins)):
@@ -277,7 +277,7 @@ class Assembler(object):
         for line in code.split(os.linesep):
             instructions.append([s for s in re.split(" |,", line.strip().upper()) if s])
             self.ins_origin.append(line.strip())
-        for i in range(len(instructions)):
-            print(instructions[i])
-        print()
+        # for i in range(len(instructions)):
+        #     print(instructions[i])
+        # print()
         return instructions

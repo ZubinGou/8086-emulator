@@ -12,15 +12,17 @@ class CPU(object):
 
     def iterate(self, debug=False):
         self.cycle_count += 1
-        print(f"clock cycle {self.cycle_count}: fetching...")
+        if debug:
+            print(f"clock cycle {self.cycle_count}: fetching...")
         self.fetch_cycle()
 
         self.cycle_count += 1
-        print(f"clock cycle {self.cycle_count}: executing...")
-        self.execute_cycle()
-        
-        self.print_state()
         if debug:
+            print(f"clock cycle {self.cycle_count}: executing...")
+        self.execute_cycle()
+
+        if debug:
+            self.print_state()
             self.debug()
 
     def debug(self):
@@ -95,24 +97,19 @@ class CPU(object):
 
     def print_state(self):
         # 打印运行时状态
-        print()
-        print("Memory of CS:IP:")
-        self.show_memory(self.BIU.cs_ip, self.BIU.cs_ip + 10)
-        print()
-        print("Memory of DS:")
-        self.show_memory(self.BIU.reg['DS']*16, self.BIU.reg['DS']*16 + 40)
-        print()
-        print("Pipeline:")
+        print("\nPipeline:")
         pprint(list(self.BIU.instruction_queue.queue))
-        print()
-        print("Pegisters:")
+        print("\nMemory of CS:IP:")
+        self.show_memory(self.BIU.cs_ip, self.BIU.cs_ip + 10)
+        print("\nMemory of DS:")
+        self.show_memory(self.BIU.reg['DS']*16, self.BIU.reg['DS']*16 + 40)
+        print("\nPegisters:")
         self.show_regs()
-        print()
-        
-        print("IR: ", self.EU.IR)
-        print('-'*80)
+        print("\nIR: ", self.EU.IR)
+        print("Next ins:", self.BIU.next_ins)
+        print('-' * 80)
     
     def print_end_state(self):
         # 打印结束状态
-        print("clock ended")
+        print("Clock ended")
         print(f"CPU ran a total of {self.cycle_count} clock cycles")

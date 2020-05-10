@@ -31,16 +31,13 @@ def main():
 
     if len(sys.argv) < 2:
         print(help)
-        sys.exit("parameter incorrect")
+        sys.exit("Parameter incorrect")
     
     if len(sys.argv) > 2 and sys.argv[2] == 'nodebug':
         DEBUG = False
     else:
         DEBUG = True
 
-    print("starting...")
-    
-    # reg = Register_file(DS_START, CS_START, SS_START, ES_START)
     with open(sys.argv[1], 'r', encoding='utf-8') as file:
         asm_code = file.read()
     assembler = Assembler(DS_START, CS_START, SS_START, ES_START)
@@ -55,7 +52,7 @@ def main():
     EU = execution_unit.execution_unit(BIU)
 
     cpu = CPU(BIU, EU)
-    print("CPU initialized successfully.")
+    print("\nCPU initialized successfully.")
 
     while not cpu.check_done():
         cpu.iterate(debug=DEBUG)

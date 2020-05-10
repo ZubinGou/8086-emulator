@@ -73,10 +73,18 @@ class bus_interface_unit(object):
         # 模仿8086取指机制，queue中少了2条及以上指令便取指
         if self.instruction_queue.qsize() <= self.instruction_queue.maxsize - 2:
             self.fill_instruction_queue()
-    
+    @property
+    def next_ins(self):
+        # Pipeline 下一条指令
+        ins_list = list(self.instruction_queue.queue)
+        if ins_list:
+            return ins_list[0]
+        else:
+            return "Pipline is emtpy."
+
     def flush_pipeline(self):
         # 有分支时刷新pipeline
-        print("Flushing pipeline...")
+        # print("Flushing pipeline...")
         self.instruction_queue.queue.clear()
         self.pre_fetch_ip = self.reg['IP']
 
@@ -89,12 +97,12 @@ class bus_interface_unit(object):
         instruction = self.memory.rb(self.cs_pre_ip)
         self.instruction_queue.put(instruction)
         self.pre_fetch_ip += 1
-        print("Fetching one ins to pipeline:")
-        pprint.pprint(list(self.instruction_queue.queue))
-        print()
+        # print("Fetching one ins to pipeline:")
+        # pprint.pprint(list(self.instruction_queue.queue))
+        # print()
 
     def fill_instruction_queue(self):
-        print("filling pipeline...")
+        # print("filling pipeline...")
         while not self.instruction_queue.full():
             # time.sleep(0.2)
             if not self.memory.is_null(self.cs_pre_ip):

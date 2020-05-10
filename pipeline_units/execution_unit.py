@@ -72,7 +72,7 @@ class execution_unit(object):
         return res
 
     def write_reg(self, reg, num):
-        print(f"writing {num} to {reg} ...")
+        # print(f"writing {num} to {reg} ...")
         if reg in self.biu_regs:
             self.bus.reg[reg] = num
         elif reg[1] == 'H':
@@ -104,7 +104,7 @@ class execution_unit(object):
                 address += self.read_reg('SS') << 4
             else:
                 address += self.read_reg('DS') << 4
-        print("Get Address", hex(address), "from opd", opd)
+        # print("Get Address", hex(address), "from opd", opd)
         return address
 
     def get_offset(self, opd):
@@ -128,7 +128,7 @@ class execution_unit(object):
         # 内存寻址 含有 '[]'
         address = self.get_address(opd)
         content = self.bus.read_byte(address)
-        print("Get Byte content:", content, " from ", hex(address))
+        # print("Get Byte content:", content, " from ", hex(address))
         return content
 
     def __get_word(self, opd):
@@ -162,15 +162,13 @@ class execution_unit(object):
             else:
                 sys.exit("Opbyte Error")
             res = 0
-            print(res_list)
             assert res_list, "Empty memory space"
             for num in res_list:
                 res = (res << 8) + int(num, 16)
-                print("res = ", res)
         # 立即数
         else:
             res = to_decimal(opd)
-        print("get_int", hex(res), "from", opd)
+        # print("get_int", hex(res), "from", opd)
         return res
 
     def put_int(self, opd, num):
@@ -915,7 +913,7 @@ class execution_unit(object):
         else:
             sys.exit("operation code not support")
 
-        print(f"old_cs_ip: {hex(old_cs_ip)}, new_cs_ip: {hex(self.bus.cs_ip)})")
+        # print(f"old_cs_ip: {hex(old_cs_ip)}, new_cs_ip: {hex(self.bus.cs_ip)})")
         if old_cs_ip != self.bus.cs_ip:
             self.bus.flush_pipeline()
 
@@ -1256,7 +1254,7 @@ class execution_unit(object):
             # If port > 255, use DX.
             port = self.get_int(self.opd[0])
             val = self.read_reg(self.opd[1])
-            print(f"Port {port} output: {hex(val)}")
+            print("@Port {}: 0x{:<4x} => {}".format(port, val, val))
         else:
             sys.exit("operation code not support")
 
