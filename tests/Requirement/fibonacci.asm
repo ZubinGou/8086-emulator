@@ -11,7 +11,7 @@ DATA SEGMENT
 DATA ENDS
 
 CODE SEGMENT
-        START: MOV AX,@DATA
+        START: MOV AX,DATA
                MOV DS,AX
                LEA SI,RES
                MOV CL,CNT       ; Load the count value for CL for looping
