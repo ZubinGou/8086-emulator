@@ -10,8 +10,8 @@ class execution_unit(object):
     def __init__(self, BIU):
         self.IR = []                 # 指令寄存器
         self.opcode = ''             # 操作码
-        self.opd = []                # 操作数 Operands  
-        self.opbyte = 2              # 默认操作字节数: 1,2,4            
+        self.opd = []                # 操作数 Operands
+        self.opbyte = 2              # 默认操作字节数: 1,2,4
         self.eo = [0] * 5            # Evaluated opds
         self.bus = BIU               # 内部总线连接BIU
         # Flag Register
@@ -90,7 +90,7 @@ class execution_unit(object):
         seg_reg = ['DS', 'CS', 'SS', 'ES']
         par_list = [s for s in re.split('\W', opd) if s]
         address = 0
-        has_seg = False 
+        has_seg = False
         for par in par_list:
             if par in adr_reg:
                 address += self.read_reg(par)
@@ -130,7 +130,7 @@ class execution_unit(object):
         content = self.bus.read_byte(address)
         print("Get Byte content:", content, " from ", hex(address))
         return content
-    
+
     def __get_word(self, opd):
         # 内存寻址 含有 '[]'
         address = self.get_address(opd)
@@ -138,11 +138,11 @@ class execution_unit(object):
         return content
 
     def __get_dword(self, opd):
-       # 内存寻址 含有 '[]'
+        # 内存寻址 含有 '[]'
         address = self.get_address(opd)
         content = self.bus.read_dword(address)
         return content
-    
+
     def get_int(self, opd):
         # 自动获取操作数值
         # 若opd为int也作为地址访问
@@ -183,7 +183,7 @@ class execution_unit(object):
 
     def is_reg(self, opd):
         return opd in (self.eu_regs + self.biu_regs)
-    
+
     def is_mem(self, opd):
         return '[' in opd
 
@@ -247,32 +247,269 @@ class execution_unit(object):
             self.write_reg(self.opd[0], self.get_int(adr))
             self.write_reg('ES', self.get_int(adr + 2))
         else:
-            pass        
+            pass
+
+    # 计算二进制中有多少个1
+    def popcount(self, num):
+        cnt = 0
+        while num > 0:
+            cnt += 1
+            num &= num - 1
+        return cnt
+
+    # 根据 opbyte 将 num 转成有符号十进制数
+    def to_signed(self, num):
+        result = 0
+        for i in range(self.opbyte * 8):
+            if i == self.opbyte * 8 - 1:
+                result -= (num >> i & 1) << i
+            else:
+                result += (num >> i & 1) << i
+        return result
+
+    # 根据 opbyte 将 num 转成无符号十进制数
+    def to_unsigned(self, num):
+        result = 0
+        for i in range(self.opbyte * 8):
+            result += (num >> i & 1) << i
+        return result
+
+    # 根据 opbyte 所能存储的有符号数的范围 判断是否溢出
+    def is_overflow(self, num):
+        low = self.to_signed(int('1' + (self.opbyte * 8 - 1) * '0', 2))
+        high = self.to_signed(int('0' + (self.opbyte * 8 - 1) * '1', 2))
+        return num > high or num < low
 
     def arithmetic_ins(self):
         if self.opcode == 'ADD':
             res1 = self.get_int(self.opd[0])
             res2 = self.get_int(self.opd[1])
-            self.put_int(self.opd[0], res1 + res2)
+            result = (res1 + res2) & int("0x" + "f" * self.opbyte * 2, 16)
+
+            if self.is_overflow(res1 + res2):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if ((self.to_unsigned(res1) + self.to_unsigned(res2)) >>
+                (self.opbyte * 8)) > 0:
+                self.FR.carry = 1
+            else:
+                self.FR.carry = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            self.put_int(self.opd[0], result)
+
+        elif self.opcode == 'ADC':
+            res1 = self.get_int(self.opd[0])
+            res2 = self.get_int(self.opd[1])
+            result = (res1 + res2 + self.FR.carry) & int(
+                "0x" + "f" * self.opbyte * 2, 16)
+
+            if self.is_overflow(res1 + res2 + self.FR.carry):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if ((self.to_unsigned(res1) + self.to_unsigned(res2) +
+                 self.FR.carry) >> (self.opbyte * 8)) > 0:
+                self.FR.carry = 1
+            else:
+                self.FR.carry = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            self.put_int(self.opd[0], result)
 
         elif self.opcode == 'SUB':
             res1 = self.get_int(self.opd[0])
             res2 = self.get_int(self.opd[1])
-            self.put_int(self.opd[0], res1 - res2)
+            result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
 
-        elif self.opcode == 'MUL': 
-            pass
+            if self.is_overflow(res1 - res2):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if self.to_unsigned(res1) < self.to_unsigned(res2):
+                self.FR.carry = 1
+            else:
+                self.FR.carry = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            self.put_int(self.opd[0], result)
+
+        elif self.opcode == 'SBB':
+            res1 = self.get_int(self.opd[0])
+            res2 = self.get_int(self.opd[1])
+            result = (res1 - res2 - self.FR.carry) & int(
+                "0x" + "f" * self.opbyte * 2, 16)
+
+            if self.is_overflow(res1 - res2 - self.FR.carry):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if self.to_unsigned(res1) <= self.to_unsigned(res2):
+                self.FR.carry = 1
+            else:
+                self.FR.carry = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            self.put_int(self.opd[0], result)
+
+        elif self.opcode == 'MUL':
+            assert self.opbyte in [1, 2]
+            res2 = self.get_int(self.opd[0])
+            if self.opbyte == 1:
+                res1 = self.read_reg('AL')
+                self.write_reg('AX', res1 * res2)
+                if self.read_reg('AH') > 0:
+                    self.FR.carry = self.FR.overflow = 1
+                else:
+                    self.FR.carry = self.FR.overflow = 0
+            elif self.opbyte == 2:
+                res1 = self.read_reg('AX')
+                result = res1 * res2
+                self.write_reg('AX', result & 0xff)
+                self.write_reg('DX', (result >> 8) & 0xff)
+                if self.read_reg('DX') > 0:
+                    self.FR.carry = self.FR.overflow = 1
+                else:
+                    self.FR.carry = self.FR.overflow = 0
 
         elif self.opcode == 'DIV':
-            pass
-        
+            assert self.opbyte in [1, 2]
+            res2 = self.get_int(self.opd[0])
+            if self.opbyte == 1:
+                res1 = self.read_reg('AX')
+                self.write_reg('AL', res1 // res2)
+                self.write_reg('AH', res1 % res2)
+            elif self.opbyte == 2:
+                res1 = (self.read_reg('DX') << 8) + self.read_reg('AX')
+                self.write_reg('AX', res1 // res2)
+                self.write_reg('DX', res1 % res2)
+
         elif self.opcode == 'INC':
             res1 = self.get_int(self.opd[0])
-            self.put_int(self.opd[0], res1 + 1)
+            result = (res1 + 1) & int("0x" + "f" * self.opbyte * 2, 16)
+
+            if self.is_overflow(res1 + 1):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            self.put_int(self.opd[0], result)
 
         elif self.opcode == 'DEC':
             res1 = self.get_int(self.opd[0])
-            self.put_int(self.opd[0], res1 - 1)
+            result = (res1 - 1) & int("0x" + "f" * self.opbyte * 2, 16)
+
+            if self.is_overflow(res1 - 1):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            self.put_int(self.opd[0], result)
+
+        elif self.opcode == 'CBW':
+            res = self.read_reg('AL')
+            if res >> 7 & 1:
+                self.write_reg('AH', 255)
+            else:
+                self.write_reg('AH', 0)
+
+        elif self.opcode == 'CWD':
+            res = self.read_reg('AX')
+            if res >> 15 & 1:
+                self.write_reg('DX', 65535)
+            else:
+                self.write_reg('DX', 0)
 
         else:
             sys.exit("operation code not support")
@@ -281,17 +518,74 @@ class execution_unit(object):
         if self.opcode == 'AND':
             res1 = self.get_int(self.opd[0])
             res2 = self.get_int(self.opd[1])
-            self.put_int(self.opd[0], res1 & res2)
+            result = res1 & res2
+
+            self.FR.carry = self.FR.overflow = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            self.put_int(self.opd[0], result)
 
         elif self.opcode == 'OR':
             res1 = self.get_int(self.opd[0])
             res2 = self.get_int(self.opd[1])
-            self.put_int(self.opd[0], res1 | res2)
+            result = res1 | res2
+
+            self.FR.carry = self.FR.overflow = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            self.put_int(self.opd[0], result)
 
         elif self.opcode == 'XOR':
             res1 = self.get_int(self.opd[0])
             res2 = self.get_int(self.opd[1])
-            self.put_int(self.opd[0], res1 ^ res2)
+            result = res1 ^ res2
+
+            self.FR.carry = self.FR.overflow = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            self.put_int(self.opd[0], result)
 
         elif self.opcode == 'NOT':
             res1 = self.get_int(self.opd[0])
@@ -299,12 +593,86 @@ class execution_unit(object):
 
         elif self.opcode == 'NEG':
             res1 = self.get_int(self.opd[0])
-            self.put_int(self.opd[0], ~res1 + 1)
+            result = ((~res1) + 1) & int("0x" + "f" * self.opbyte * 2, 16)
+            if self.is_overflow((~res1) + 1):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if (self.to_unsigned(~res1) + 1) >> (self.opbyte * 8) > 0:
+                self.FR.carry = 1
+            else:
+                self.FR.carry = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            self.put_int(self.opd[0], result)
 
         elif self.opcode == 'CPM':
-            pass
+            res1 = self.get_int(self.opd[0])
+            res2 = self.get_int(self.opd[1])
+            result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
+
+            if self.is_overflow(res1 - res2):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if self.to_unsigned(res1) < self.to_unsigned(res2):
+                self.FR.carry = 1
+            else:
+                self.FR.carry = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
         elif self.opcode == 'TEST':
-            pass
+            res1 = self.get_int(self.opd[0])
+            res2 = self.get_int(self.opd[1])
+            result = res1 & res2
+
+            self.FR.carry = self.FR.overflow = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
         else:
             sys.exit("operation code not support")
 
@@ -369,7 +737,7 @@ class execution_unit(object):
         if self.opcode == 'JMP':
             # self.opbyte = 2
             if self.is_mem(self.opd[0]): # 转移地址在内存：jmp word/dword ptr [adr]
-                adr = self.get_address(opd[0])
+                adr = self.get_address(self.opd[0])
                 if self.opbyte == 4:
                     self.opbyte = 2
                     self.write_reg('CS', self.get_int(adr + 2))
@@ -417,7 +785,7 @@ class execution_unit(object):
             self.reg['SP'] += 2
 
         elif self.opcode in conditional_jump_ins:
-            # 所有条件转移都是短转移 
+            # 所有条件转移都是短转移
             jmp_map = {
                 'JA':  self.FR.carry == 0 and self.FR.zero == 0,
                 'JAE': self.FR.carry == 0,
@@ -429,7 +797,7 @@ class execution_unit(object):
                 'JG': self.FR.zero == 0 and self.FR.sign == self.FR.overflow,
                 'JGE': self.FR.sign == self.FR.overflow,
                 'JL': self.FR.sign != self.FR.overflow,
-                'JLE': self.FR.sign != self.FR.overflow or self.FR.zero == 1, 
+                'JLE': self.FR.sign != self.FR.overflow or self.FR.zero == 1,
                 'JNA': self.FR.carry == 1 or self.FR.zero == 1,
                 'JNAE': self.FR.carry == 1,
                 'JNB': self.FR.carry == 0,
@@ -471,21 +839,21 @@ class execution_unit(object):
         elif self.opcode == 'STOS':
             pass
         elif self.opcode == 'SCAS':
-            pass 
+            pass
         elif self.opcode == 'REP':
-            pass 
+            pass
         elif self.opcode == 'REPE':
-            pass 
+            pass
         elif self.opcode == 'REPZ':
-            pass 
+            pass
         elif self.opcode == 'REPNE':
-            pass 
+            pass
         elif self.opcode == 'REPNZ':
             pass
         else:
             sys.exit("operation code not support")
 
-    # execution_unit 中的方法    
+    # execution_unit 中的方法
     def flag_manipulation_ins(self):
         if self.opcode == 'STC':
             self.FR.carry = 1

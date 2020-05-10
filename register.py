@@ -155,29 +155,7 @@ class Flag_register(object):
         self.direction = num >> 10 & 1
         self.interrupt = num >> 9 & 1
         self.trap = num >> 8 & 1
-
-    def get_int(self):
-        return (self.overflow << 11) + (self.direction << 10) + (self.interrupt << 9) + \
-               (self.trap << 8) + (self.sign << 7) + (self.zero << 6) + (self.auxiliary << 4) + \
-               (self.parity << 2) + (self.carry)
-
-    def get_low(self):
-        return self.get_int() & 0xff
-    
-    def set_low(self, num):
-        self.sign = num >> 7 & 1
-        self.zero = num >> 6 & 1
-        self.auxiliary = num >> 4 & 1
-        self.parity = num >> 2 & 1
-        self.carry = num & 1
-
-    def set_int(self, num):
-        self.set_low(num & 0xff)
-        self.overflow = num >> 11 & 1
-        self.direction = num >> 10 & 1
-        self.interrupt = num >> 9 & 1
-        self.trap = num >> 8 & 1
-
+        
 # class Register_file(object):
 #     # 寄存器堆
 #     def __init__(self, DS_START, CS_START, SS_START, ES_START):
