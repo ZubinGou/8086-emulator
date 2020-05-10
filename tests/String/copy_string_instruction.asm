@@ -15,7 +15,7 @@ EXTRA SEGMENT
 EXTRA ENDS
 
 CODE SEGMENT
-    START : MOV AX,DATA
+    START:  MOV AX,DATA
             MOV DS,AX
             MOV AX,EXTRA
             MOV ES,AX

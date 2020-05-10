@@ -26,7 +26,8 @@ CODE SEGMENT
            add cx,num4         ;add the 2 words
     
            mov sum2,cx         ;stores the result in memory
-    
+           out 0,cx
+
            mov ah,4ch
            int 21h
     

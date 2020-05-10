@@ -12,6 +12,7 @@ start: mov ax,data
        mov ds,ax
        mov ah,09h
        lea dx,message
+       out 0,dx
        int 21h
 
        mov ax,4c00h

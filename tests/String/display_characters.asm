@@ -5,6 +5,7 @@ assume cs:code
 
 code segment
     start: mov dl,'a'        ;store ascii code of 'a' in dl
+           out 0,dl
            mov ah,2h         ;ms-dos character output function
            int 21h           ;displays character in dl register
            

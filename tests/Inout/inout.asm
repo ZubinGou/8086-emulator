@@ -1,5 +1,5 @@
 NAME Inout
-TITLE Inout
+TITLE inout
 
 assume cs:codesg,ds:datasg
 ; this is add proc ;;

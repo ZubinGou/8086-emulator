@@ -30,7 +30,7 @@ START:
       LOOP LOOP1
 
       DIV BL
-
+      OUT 0,AL
       ADD AL,30H
 
       MOV DL,AL
