@@ -148,15 +148,11 @@ class Assembler(object):
                 seg_ip += seg_ip % 2
             elif ins[0] == 'ALIGN':
                 num = to_decimal(ins[1])
-                if num & (num-1): # num为2的幂
-                    sys.exit("Compile Error: ALIGN num not 2's power.")
-                else:
-                    seg_ip += (-seg_ip) % num 
+                assert num & (num-1) == 0, "Num should be power of 2"  # num为2的幂
+                seg_ip += (-seg_ip) % num 
             elif ins[0] == seg_tmp:
-                if ins[1] == 'ENDS':
-                    return i + 1
-                else:
-                    sys.exit("Compile Error: segment ends fault")
+                assert ins[1] == 'ENDS', "Compile Error: segment ends fault"
+                return i + 1
 
             elif ':' in ins[0]: # 数据标号
                 tag_list = ins[0].split(':')
@@ -243,12 +239,10 @@ class Assembler(object):
         str_list =  ast.literal_eval(string)
         byte_list = []
         for item in str_list:
-            if isinstance(item, int):
-                high, low = item >> 8, item & 0x0ff
-                byte_list.append([hex(low)])  # little endian
-                byte_list.append([hex(high)]) 
-            else:
-                sys.exit("Compile Error: str to hex")
+            assert isinstance(item, int), "Compile Error: str to hex"
+            high, low = item >> 8, item & 0x0ff
+            byte_list.append([hex(low)])  # little endian
+            byte_list.append([hex(high)]) 
         return byte_list
 
     @classmethod
@@ -257,13 +251,11 @@ class Assembler(object):
         str_list =  ast.literal_eval(string)
         byte_list = []
         for item in str_list:
-            if isinstance(item, int):
-                byte_list.append([hex(item & 0x0ff)]) # little endian
-                byte_list.append([hex(item >> 8 & 0x0ff)])
-                byte_list.append([hex(item >> 16 & 0x0ff)])
-                byte_list.append([hex(item >> 24)])
-            else:
-                sys.exit("Compile Error: str to hex")
+            assert isinstance(item, int), "Compile Error: str to hex"
+            byte_list.append([hex(item & 0x0ff)]) # little endian
+            byte_list.append([hex(item >> 8 & 0x0ff)])
+            byte_list.append([hex(item >> 16 & 0x0ff)])
+            byte_list.append([hex(item >> 24)])
         return byte_list
 
     def __assume(self, ins):

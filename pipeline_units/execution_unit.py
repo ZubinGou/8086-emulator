@@ -163,8 +163,7 @@ class execution_unit(object):
                 sys.exit("Opbyte Error")
             res = 0
             print(res_list)
-            if not res_list:
-                sys.exit("Empty memory space")
+            assert res_list, "Empty memory space"
             for num in res_list:
                 res = (res << 8) + int(num, 16)
                 print("res = ", res)
@@ -511,9 +510,18 @@ class execution_unit(object):
 
     def input_output_ins(self):
         if self.opcode == 'IN':
-            pass
+            # Input from port into AL or AX. IN AX, 4; IN AL, 7;
+            # And we are not restricted to AL and AX, you can input to all regs.
+            port = to_decimal(self.opd[1])
+            val = to_decimal(input(f"Input to Port {port}: "))
+            self.write_reg(self.opd[0], val)
         elif self.opcode == 'OUT':
-            pass
+            # Output from AL or AX to port. OUT 4, AX; OUT DX, AX
+            # And we are not restricted to AL and AX, you can output from all regs.
+            # If port > 255, use DX.
+            port = self.get_int(self.opd[0])
+            val = self.read_reg(self.opd[1])
+            print(f"Port {port} output: {hex(val)}")
         else:
             sys.exit("operation code not support")
 
