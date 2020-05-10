@@ -19,8 +19,11 @@ codesg segment ; for
     inc ax
     start:mov ax, 0123h;;t;sd 
     mov bx, 0456h
-    org 1ah
+    jmp well
+
+    org 0x100
     well: add ax, bx
+    loop well
     org 11100B
     add ax, [SI]
 ;aaa

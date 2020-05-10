@@ -38,10 +38,10 @@ class execution_unit(object):
         self.bus.reg['IP'] += 1
         if len(self.IR) > 1:
             self.opd = self.IR[1:]
-        self.__get_opbyte()
+        self.get_opbyte()
         self.control_circuit()
 
-    def __get_opbyte(self):
+    def get_opbyte(self):
         self.opbyte = 2
         for pr in self.opd:
             if pr in ['AL', 'AH', 'BL', 'BH', 'CL', 'CH', 'DL', 'DH']:

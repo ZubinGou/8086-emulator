@@ -51,8 +51,8 @@ class Assembler(object):
         self.ip = '0'    # 程序入口offset
         self.ins_origin = [] # 未转换和分割的原始指令
 
-    def compile(self, file_name):
-        instructions = self.__preprocessing(file_name)
+    def compile(self, code):
+        instructions = self.__preprocessing(code)
         for ip in range(len(instructions)):
             ins = instructions[ip]
             if ins[0] == 'NAME': # 模块名
@@ -269,17 +269,15 @@ class Assembler(object):
     def __remove_empty_line(self, text):
         return os.linesep.join([s.strip() for s in text.splitlines() if s.strip()])
 
-    def __preprocessing(self, file_name):
-        with open(file_name, 'r', encoding='utf-8') as file:
-            code = file.read()
-            code = self.__strip_comments(code)
-            code = self.__remove_empty_line(code)
-            code = code.replace('?', '0')
-            instructions = []
-            for line in code.split(os.linesep):
-                instructions.append([s for s in re.split(" |,", line.strip().upper()) if s])
-                self.ins_origin.append(line.strip())
-            for i in range(len(instructions)):
-                print(instructions[i])
-            print()
+    def __preprocessing(self, code):
+        code = self.__strip_comments(code)
+        code = self.__remove_empty_line(code)
+        code = code.replace('?', '0')
+        instructions = []
+        for line in code.split(os.linesep):
+            instructions.append([s for s in re.split(" |,", line.strip().upper()) if s])
+            self.ins_origin.append(line.strip())
+        for i in range(len(instructions)):
+            print(instructions[i])
+        print()
         return instructions

@@ -123,16 +123,16 @@ class Flag_register(object):
     # 16bits的标志寄存器，其中9个比特是被使用的，另外7个比特保留未用
     def __init__(self):
         # status flags
-        self.carry = 0
-        self.parity = 0
-        self.auxiliary = 0
-        self.zero = 0
-        self.sign = 0
-        self.overflow = 0
+        self.sign = 0       # S
+        self.zero = 0       # Z
+        self.auxiliary = 0  # AC unused
+        self.parity = 0     # P
+        self.carry = 0      # CY
+        self.overflow = 0   # O
         # control flags
-        self.trap = 0
-        self.interrupt = 0
-        self.direction = 0
+        self.direction = 0  # D unused
+        self.interrupt = 0  # I unused
+        self.trap = 0       # T unused
     
     def get_int(self):
         return (self.overflow << 11) + (self.direction << 10) + (self.interrupt << 9) + \

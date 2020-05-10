@@ -41,8 +41,10 @@ def main():
     print("starting...")
     
     # reg = Register_file(DS_START, CS_START, SS_START, ES_START)
+    with open(sys.argv[1], 'r', encoding='utf-8') as file:
+        asm_code = file.read()
     assembler = Assembler(DS_START, CS_START, SS_START, ES_START)
-    exe_file = assembler.compile(sys.argv[1])
+    exe_file = assembler.compile(asm_code)
     memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
     memory.load(exe_file) # load code segment
 
