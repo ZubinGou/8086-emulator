@@ -20,7 +20,22 @@ class CPU(object):
         
         self.print_state()
         if debug:
-            input("press any key to continue...")
+            self.debug()
+
+    def debug(self):
+        while True:
+            cmd = input("Press Enter to continue...\n-")
+            if cmd == '\n':
+                return
+            cmd = cmd.upper().split()
+            if cmd[0] == 'A':
+                pass
+            elif cmd[0] == 'D':
+                pass
+            elif cmd[0] == 'R':
+                pass
+
+        
 
     def fetch_cycle(self):
         # Instruction fetch cycle 取指令周期
@@ -37,6 +52,11 @@ class CPU(object):
         return  self.BIU.instruction_queue.empty() and \
                 not self.BIU.remain_instruction()
 
+    def show_regs(self):
+        print(f'''
+        AX: {self.BIU.reg['AX']}
+        ''')
+
     def print_state(self):
         # 打印运行时状态
         print()
@@ -49,9 +69,11 @@ class CPU(object):
         print("pipeline:")
         pprint(list(self.BIU.instruction_queue.queue))
         print()
+
         print("registers:")
         for key, val in self.BIU.reg.items():
             print(key, '0x%04x' % val)
+
         print()
         for key, val in self.EU.reg.items():
             print(key, '0x%04x' % val)
