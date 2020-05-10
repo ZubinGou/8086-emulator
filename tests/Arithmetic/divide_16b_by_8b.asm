@@ -21,6 +21,8 @@ code segment
            
            mov quo,al
            mov rem,ah
+           out 0,al
+           out 0,ah
            mov ah,4ch
            int 21h
 code ends

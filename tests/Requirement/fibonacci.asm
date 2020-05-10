@@ -24,6 +24,7 @@ CODE SEGMENT
                MOV AX,BX
                MOV BX,[SI]
                INC SI
+               OUT 0,BX
                LOOP L1
 
                INT 3H           ; Terminate the Program

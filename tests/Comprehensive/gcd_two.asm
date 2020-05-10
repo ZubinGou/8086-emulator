@@ -36,6 +36,7 @@ X3:    XCHG AX,BX
 
 
 X4:    MOV GCD ,BX
+       OUT 0,BX
        MOV AH,4CH
        INT 21H
 

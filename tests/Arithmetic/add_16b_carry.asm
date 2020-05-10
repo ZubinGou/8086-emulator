@@ -21,6 +21,7 @@ start: mov ax,var1
        mov carry,01h
 
 skip: mov result,ax
+      out 0,ax
 
       int 03h
 

@@ -21,7 +21,7 @@ skip:   inc si          ;point to next offset
         loop back       ;decrement cx by 1
         
         mov [si],ax     ;store final result in 20,009H
-        
+        out 0,ax
         HLT 
 CODE ENDS    
 END START                                           

@@ -12,7 +12,7 @@ code segment
     start: mov ax,data          ;intialize DS to address
            mov ds,ax            ;of data segment
            lea dx,msg           ;load effect address of message
-           
+           out 0,dx
            mov ah,09h           ;display string function
            int 21h              ;display message
            
