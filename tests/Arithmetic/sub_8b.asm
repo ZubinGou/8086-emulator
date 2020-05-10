@@ -9,7 +9,7 @@ data segment
     res db ?
     msg1 db 10,13,"enter the first number: $"
     msg2 db 10,13,"enter the second number: $"
-    msg3 db 10,13,"result of addition is: $"
+    msg3 db 10,13,"result of subtraction is: $"
 data ends   
 
 
