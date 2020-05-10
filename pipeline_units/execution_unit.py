@@ -678,25 +678,115 @@ class execution_unit(object):
 
     def rotate_shift_ins(self):
         if self.opcode == 'RCL':
-            res1 = self.get_int(self.opd[0])
-            res2 = self.get_int(self.opd[1])
-            self.put_int(self.opd[0], res1 << res2)
-            # TODO flags
+            res = self.get_int(self.opd[0])
+            cnt = self.get_int(self.opd[1])
+            while cnt:
+                cnt -= 1
+                temp = (res << 1) + self.FR.carry
+                self.FR.carry = temp >> (self.opbyte * 8) & 1
+                if (temp >> (self.opbyte * 8 - 1) & 1) == (res >> (self.opbyte * 8 - 1) & 1):
+                    self.FR.overflow = 0
+                else:
+                    self.FR.overflow = 1
+                res = temp & int('1' * self.opbyte * 8, 2)
+            self.put_int(self.opd[0], res)
 
         elif self.opcode == 'RCR':
-            pass
+            res = self.get_int(self.opd[0])
+            cnt = self.get_int(self.opd[1])
+            while cnt:
+                cnt -= 1
+                temp = (res >> 1) + (self.FR.carry << (self.opbyte * 8 - 1))
+                self.FR.carry = res & 1
+                if (temp >> (self.opbyte * 8 - 1) & 1) == (res >> (self.opbyte * 8 - 1) & 1):
+                    self.FR.overflow = 0
+                else:
+                    self.FR.overflow = 1
+                res = temp
+            self.put_int(self.opd[0], res)
+
         elif self.opcode == 'ROL':
-            pass
+            res = self.get_int(self.opd[0])
+            cnt = self.get_int(self.opd[1])
+            while cnt:
+                cnt -= 1
+                temp = (res << 1) + (res >> (self.opbyte * 8 - 1) & 1)
+                self.FR.carry = res >> (self.opbyte * 8 - 1) & 1
+                if (temp >> (self.opbyte * 8 - 1) & 1) == (res >> (self.opbyte * 8 - 1) & 1):
+                    self.FR.overflow = 0
+                else:
+                    self.FR.overflow = 1
+                res = temp & int('1' * self.opbyte * 8, 2)
+            self.put_int(self.opd[0], res)
+
         elif self.opcode == 'ROR':
-            pass
+            res = self.get_int(self.opd[0])
+            cnt = self.get_int(self.opd[1])
+            while cnt:
+                cnt -= 1
+                temp = (res >> 1) + ((res & 1) << (self.opbyte * 8 - 1))
+                self.FR.carry = res & 1
+                if (temp >> (self.opbyte * 8 - 1) & 1) == (res >> (self.opbyte * 8 - 1) & 1):
+                    self.FR.overflow = 0
+                else:
+                    self.FR.overflow = 1
+                res = temp
+            self.put_int(self.opd[0], res)
+
         elif self.opcode == 'SAL':
-            pass
+            res = self.get_int(self.opd[0])
+            cnt = self.get_int(self.opd[1])
+            while cnt:
+                cnt -= 1
+                temp = res << 1
+                self.FR.carry = temp >> (self.opbyte * 8) & 1
+                if (temp >> (self.opbyte * 8 - 1) & 1) == \
+                    (res >> (self.opbyte * 8 - 1) & 1):
+                    self.FR.overflow = 0
+                else:
+                    self.FR.overflow = 1
+                res = temp & int('1' * self.opbyte * 8, 2)
+            self.put_int(self.opd[0], res)
+
         elif self.opcode == 'SHL':
-            pass
+            res = self.get_int(self.opd[0])
+            cnt = self.get_int(self.opd[1])
+            while cnt:
+                cnt -= 1
+                temp = res << 1
+                self.FR.carry = temp >> (self.opbyte * 8) & 1
+                if (temp >> (self.opbyte * 8 - 1) & 1) == \
+                    (res >> (self.opbyte * 8 - 1) & 1):
+                    self.FR.overflow = 0
+                else:
+                    self.FR.overflow = 1
+                res = temp & int('1' * self.opbyte * 8, 2)
+            self.put_int(self.opd[0], res)
+
         elif self.opcode == 'SAR':
-            pass
+            res = self.get_int(self.opd[0])
+            cnt = self.get_int(self.opd[1])
+            while cnt:
+                cnt -= 1
+                self.FR.carry = res & 1
+                self.FR.overflow = 0
+                op = res >> (self.opbyte * 8 - 1) & 1
+                res = (res >> 1) + (op << (self.opbyte * 8 - 1))
+            self.put_int(self.opd[0], res)
+
         elif self.opcode == 'SHR':
-            pass
+            res = self.get_int(self.opd[0])
+            cnt = self.get_int(self.opd[1])
+            while cnt:
+                cnt -= 1
+                self.FR.carry = res & 1
+                if res >> (self.opbyte * 8 - 1) & 1:
+                    self.FR.overflow = 1
+                else:
+                    self.FR.overflow = 0
+                res >>= 1
+            self.put_int(self.opd[0], res)
+
         else:
             sys.exit("operation code not support")
 
