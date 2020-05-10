@@ -1,8 +1,8 @@
 import sys
 import re
-from register import *
-from instructions import *
-from assembler import to_decimal
+from emulator.register import *
+from emulator.instructions import *
+from emulator.assembler import to_decimal
 
 
 class execution_unit(object):

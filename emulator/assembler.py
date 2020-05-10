@@ -3,7 +3,7 @@ import os
 import sys
 import ast
 from pprint import pprint
-from instructions import all_ins,transfer_control_ins 
+from emulator.instructions import all_ins,transfer_control_ins
 
 data_def_ins = ['DB', 'DW', 'DD', 'DQ', 'DT', 'DUP']
 

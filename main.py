@@ -1,10 +1,10 @@
 import re
 import sys
 import queue
-from assembler import Assembler
-from memory import Memory
-from pipeline_units import bus_interface_unit, execution_unit
-from cpu import CPU
+from emulator.assembler import Assembler
+from emulator.memory import Memory
+from emulator.pipeline_units import bus_interface_unit, execution_unit
+from emulator.cpu import CPU
 
 INSTRUCTION_QUEUE_SIZE = 6
 MEMORY_SIZE = int('FFFFF', 16)  # 内存空间大小 1MB

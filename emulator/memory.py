@@ -1,5 +1,5 @@
 import sys
-from assembler import Assembler
+from emulator.assembler import Assembler
 
 class Memory(object):
 

@@ -133,6 +133,17 @@ class Flag_register(object):
         self.direction = 0  # D unused
         self.interrupt = 0  # I unused
         self.trap = 0       # T unused
+        self.reg = {
+            'CF': self.carry,
+            'PF': self.parity,
+            'AF': self.auxiliary,
+            'Z': self.zero,
+            'S': self.sign,
+            'O': self.overflow,
+            'TF': self.trap,
+            'IF': self.interrupt,
+            'DF': self.direction
+        }
     
     def get_int(self):
         return (self.overflow << 11) + (self.direction << 10) + (self.interrupt << 9) + \

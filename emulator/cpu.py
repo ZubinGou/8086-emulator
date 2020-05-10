@@ -1,7 +1,7 @@
 import time
 import re
 from pprint import pprint
-from assembler import Assembler
+from emulator.assembler import Assembler
 
 class CPU(object):
     
