@@ -1,4 +1,6 @@
 ;program to subtract two 8b numbers
+NAME Arithmetic
+TITLE sub_8b
 
 assume cs:code,ds:data
 data segment

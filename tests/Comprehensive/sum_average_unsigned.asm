@@ -1,4 +1,7 @@
 ;ALP to find the Sum and average of unsigned integer.
+NAME Comprehensive
+TITLE sum_average_unsigned
+
 
 ASSUME CS:CODE,DS:DATA
 

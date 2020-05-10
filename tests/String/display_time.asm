@@ -1,3 +1,6 @@
+NAME String
+TITLE display_time
+
 ASSUME CS:CODE, DS:DATA
 
 DATA SEGMENT

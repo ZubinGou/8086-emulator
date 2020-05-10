@@ -1,5 +1,8 @@
 ;Develop and execute an ALP to compute factorial of a positive integer
 ;number using recursive procedure.
+NAME Comprehensive
+TITLE fact
+
 ASSUME CS:CODE,DS:DATA
 
 DATA SEGMENT
@@ -23,19 +26,18 @@ X1:    MOV FACT,AX
        MOV AH,4CH
        INT 21H
        
-FACT1 PROC
-    CMP BX,01H
-    JZ X
-    PUSH BX
-    DEC BX
-    CALL FACT1
-    POP BX
-    MUL BX
-    RET
+FACT1:
+        CMP BX,01H
+        JZ X
+        PUSH BX
+        DEC BX
+        CALL FACT1
+        POP BX
+        MUL BX
+        RET
     
-X:  MOV AX,01H
-    RET
-    FACT1 ENDP
+ X:     MOV AX,01H
+        RET
 
 CODE ENDS
 END START

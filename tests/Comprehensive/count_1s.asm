@@ -1,4 +1,7 @@
 ;program to count number of binary 1s
+NAME Arithmetic
+TITLE count_1s
+
 assume cs:code,ds:data
 data segment
     data1 db ? 

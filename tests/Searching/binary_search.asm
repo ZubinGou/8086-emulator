@@ -1,6 +1,9 @@
 ;Develop and execute ALP that implements Binary search algorithm. The data
 ;consists of sorted 16 bit unsigned integers. The search key is also a 16 bit unsigned
 ;integer.
+NAME Searching
+TITLE binary_search
+
 ASSUME CS:CODE,DS:DATA
 
 DATA SEGMENT
@@ -13,24 +16,24 @@ DATA ENDS
 
 
 CODE SEGMENT
-    START: MOV AX,DATA
-    MOV DS,AX
-    MOV BX,00H
-    MOV CX,SR
-    MOV DX,05H
+    START:  MOV AX,DATA
+            MOV DS,AX
+            MOV BX,00H
+            MOV CX,SR
+            MOV DX,05H
 
-LP: CMP BX,DX
-    JA FAILURE
-    MOV AX,BX
-    ADD AX,DX
-    SHR AX,01
-    MOV SI,AX
-    ADD SI,SI
-    CMP CX,ARR[SI]
-    JAE BIGGER
-    DEC AX
-    MOV DX,AX
-    JMP LP  
+    LP: CMP BX,DX
+        JA FAILURE
+        MOV AX,BX
+        ADD AX,DX
+        SHR AX,01
+        MOV SI,AX
+        ADD SI,SI
+        CMP CX,ARR[SI]
+        JAE BIGGER
+        DEC AX
+        MOV DX,AX
+        JMP LP  
     
 BIGGER: JE SUCCESS
         INC AX

@@ -1,4 +1,7 @@
 ;ALP to find the Greatest Common Deviser of two unsigned integer.
+NAME Comprehensive
+TITLE gcd_two
+
 ASSUME CS:CODE,DS:DATA
 
 DATA SEGMENT

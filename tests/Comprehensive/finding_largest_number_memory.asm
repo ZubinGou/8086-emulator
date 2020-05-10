@@ -1,6 +1,9 @@
 ;find out largest number from an unordered array of sixteen 8-bit 
 ;numbers stored sequentially in memory location 2000:5000H. Store 
 ;the largest number in memory location 2000:5000H
+NAME Comprehensive
+TITLE finding_largest_number_memory
+
 assume cs:code, ds:data
 
 data segment

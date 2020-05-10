@@ -1,3 +1,8 @@
+NAME String
+TITLE display_characters
+
+assume cs:code
+
 code segment
     start: mov dl,'a'        ;store ascii code of 'a' in dl
            mov ah,2h         ;ms-dos character output function
