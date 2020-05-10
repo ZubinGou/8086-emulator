@@ -42,7 +42,6 @@ class MainWindow(object):
         self.EU = execution_unit.execution_unit(self.BIU)
         self.cpu2 = CPU(self.BIU, self.EU)
 
-
         qApp.lastWindowClosed.connect(self.stopAndWait)
 
         self.gui = uic.loadUi(_resource('mainwindow.ui'))
@@ -144,7 +143,7 @@ class MainWindow(object):
         self.memory.load(self.exe_file)  # load code segment
         self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory)
         self.EU = execution_unit.execution_unit(self.BIU)
-        self.cpu2 = CPU2(self.BIU, self.EU)
+        self.cpu2 = CPU(self.BIU, self.EU)
         self.console.appendPlainText("CPU initialized successfully.")
 
     def runAction(self):
