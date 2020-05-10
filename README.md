@@ -5,7 +5,7 @@
 - 运行示例：python main.py tests/fibonacci.asm
 ![](/image/8086_architecture.png)
 
-施工中....
+施工中...
 
 
 ### 指令集
