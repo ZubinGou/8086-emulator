@@ -1,3 +1,6 @@
+NAME Inout
+TITLE Inout
+
 assume cs:codesg,ds:datasg
 ; this is add proc ;;
 codesg segment ; for 

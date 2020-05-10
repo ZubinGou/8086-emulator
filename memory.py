@@ -19,7 +19,7 @@ class Memory(object):
     def rb(self, loc):
         self.verify(loc)
         print("Memory reading byte from", hex(loc))
-        return self.space[loc]
+        return [self.space[loc]]
 
     def wb(self, loc, content):
         # content is a list

@@ -920,26 +920,303 @@ class execution_unit(object):
             self.bus.flush_pipeline()
 
     def string_manipulation_ins(self):
-        if self.opcode == 'MOVS':
-            pass
-        elif self.opcode == 'CMPS':
-            pass
-        elif self.opcode == 'LODS':
-            pass
-        elif self.opcode == 'STOS':
-            pass
-        elif self.opcode == 'SCAS':
-            pass
+        if self.opcode == 'MOVSB':
+            src_adr = self.bus.reg['DS'] * 16 + self.reg['SI']
+            dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
+            res_list = self.bus.read_byte(src_adr)
+            self.write_mem(dst_adr, res_list)
+            if self.FR.direction == 0:
+                self.reg['SI'] += 1
+                self.reg['DI'] += 1
+            else:
+                self.reg['SI'] -= 1
+                self.reg['DI'] -= 1
+
+        elif self.opcode == 'MOVSW':
+            src_adr = self.bus.reg['DS'] * 16 + self.reg['SI']
+            dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
+            res_list = self.bus.read_word(src_adr)
+            self.write_mem(dst_adr, res_list)
+            if self.FR.direction == 0:
+                self.reg['SI'] += 2
+                self.reg['DI'] += 2
+            else:
+                self.reg['SI'] -= 2
+                self.reg['DI'] -= 2
+
+        elif self.opcode == 'CMPSB':
+            src_adr = self.bus.reg['DS'] * 16 + self.reg['SI']
+            dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
+            res1_list = self.bus.read_byte(src_adr)
+            res1 = 0
+            for num in res1_list:
+                res1 = (res1 << 8) + int(num, 16)
+            res2_list = self.bus.read_byte(dst_adr)
+            res2 = 0
+            for num in res2_list:
+                res2 = (res2 << 8) + int(num, 16)
+
+            result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
+            if self.is_overflow(res1 - res2):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if self.to_unsigned(res1) < self.to_unsigned(res2):
+                self.FR.carry = 1
+            else:
+                self.FR.carry = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            if self.FR.direction == 0:
+                self.reg['SI'] += 1
+                self.reg['DI'] += 1
+            else:
+                self.reg['SI'] -= 1
+                self.reg['DI'] -= 1
+
+        elif self.opcode == 'CMPSW':
+            src_adr = self.bus.reg['DS'] * 16 + self.reg['SI']
+            dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
+            res1_list = self.bus.read_word(src_adr)
+            res1 = 0
+            for num in res1_list:
+                res1 = (res1 << 8) + int(num, 16)
+            res2_list = self.bus.read_word(dst_adr)
+            res2 = 0
+            for num in res2_list:
+                res2 = (res2 << 8) + int(num, 16)
+
+            result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
+            if self.is_overflow(res1 - res2):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if self.to_unsigned(res1) < self.to_unsigned(res2):
+                self.FR.carry = 1
+            else:
+                self.FR.carry = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            if self.FR.direction == 0:
+                self.reg['SI'] += 2
+                self.reg['DI'] += 2
+            else:
+                self.reg['SI'] -= 2
+                self.reg['DI'] -= 2
+
+        elif self.opcode == 'LODSB':
+            src_adr = self.bus.reg['DS'] * 16 + self.reg['SI']
+            res_list = self.bus.read_byte(src_adr)
+            res = 0
+            for num in res_list:
+                res = (res << 8) + int(num, 16)
+            self.write_reg('AL', res)
+            if self.FR.direction == 0:
+                self.reg['SI'] += 1
+            else:
+                self.reg['SI'] -= 1
+
+        elif self.opcode == 'LODSW':
+            src_adr = self.bus.reg['DS'] * 16 + self.reg['SI']
+            res_list = self.bus.read_word(src_adr)
+            res = 0
+            for num in res_list:
+                res = (res << 8) + int(num, 16)
+            self.write_reg('AX', res)
+            if self.FR.direction == 0:
+                self.reg['SI'] += 2
+            else:
+                self.reg['SI'] -= 2
+
+        elif self.opcode == 'STOSB':
+            dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
+            res = self.read_reg('AL')
+            self.bus.write_byte(dst_adr, res)
+            if self.FR.direction == 0:
+                self.reg['DI'] += 1
+            else:
+                self.reg['DI'] -= 1
+
+        elif self.opcode == 'STOSW':
+            dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
+            res = self.read_reg('AX')
+            self.bus.write_word(dst_adr, res)
+            if self.FR.direction == 0:
+                self.reg['DI'] += 2
+            else:
+                self.reg['DI'] -= 2
+
+        elif self.opcode == 'SCASB':
+            dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
+            res1 = self.read_reg('AL')
+            res2_list = self.bus.read_byte(dst_adr)
+            res2 = 0
+            for num in res2_list:
+                res2 = (res2 << 8) + int(num, 16)
+
+            result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
+            if self.is_overflow(res1 - res2):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if self.to_unsigned(res1) < self.to_unsigned(res2):
+                self.FR.carry = 1
+            else:
+                self.FR.carry = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            if self.FR.direction == 0:
+                self.reg['DI'] += 1
+            else:
+                self.reg['DI'] -= 1
+
+        elif self.opcode == 'SCASW':
+            dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
+            res1 = self.read_reg('AX')
+            res2_list = self.bus.read_word(dst_adr)
+            res2 = 0
+            for num in res2_list:
+                res2 = (res2 << 8) + int(num, 16)
+
+            result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
+            if self.is_overflow(res1 - res2):
+                self.FR.overflow = 1
+            else:
+                self.FR.overflow = 0
+
+            if self.to_unsigned(res1) < self.to_unsigned(res2):
+                self.FR.carry = 1
+            else:
+                self.FR.carry = 0
+
+            if self.popcount(result) % 2 == 0:
+                self.FR.parity = 1
+            else:
+                self.FR.parity = 0
+
+            if result == 0:
+                self.FR.zero = 1
+            else:
+                self.FR.zero = 0
+
+            if self.to_signed(result) < 0:
+                self.FR.sign = 1
+            else:
+                self.FR.sign = 0
+
+            if self.FR.direction == 0:
+                self.reg['DI'] += 2
+            else:
+                self.reg['DI'] -= 2
+
         elif self.opcode == 'REP':
-            pass
+            self.opcode = self.opd[0]
+            if len(self.opd) > 1:
+                self.opd = self.opd[1:]
+            else:
+                self.opd = []
+            while self.read_reg('CX') != 0:
+                self.control_circuit()
+                res = self.read_reg('CX')
+                self.write_reg('CX', res - 1)
+
         elif self.opcode == 'REPE':
-            pass
+            self.opcode = self.opd[0]
+            if len(self.opd) > 1:
+                self.opd = self.opd[1:]
+            else:
+                self.opd = []
+            while self.read_reg('CX') != 0:
+                self.control_circuit()
+                res = self.read_reg('CX')
+                self.write_reg('CX', res - 1)
+                if self.FR.zero == 0:
+                    break
+
         elif self.opcode == 'REPZ':
-            pass
+            self.opcode = self.opd[0]
+            if len(self.opd) > 1:
+                self.opd = self.opd[1:]
+            else:
+                self.opd = []
+            while self.read_reg('CX') != 0:
+                self.control_circuit()
+                res = self.read_reg('CX')
+                self.write_reg('CX', res - 1)
+                if self.FR.zero == 0:
+                    break
+
         elif self.opcode == 'REPNE':
-            pass
+            self.opcode = self.opd[0]
+            if len(self.opd) > 1:
+                self.opd = self.opd[1:]
+            else:
+                self.opd = []
+            while self.read_reg('CX') != 0:
+                self.control_circuit()
+                res = self.read_reg('CX')
+                self.write_reg('CX', res - 1)
+                if self.FR.zero == 1:
+                    break
+
         elif self.opcode == 'REPNZ':
-            pass
+            self.opcode = self.opd[0]
+            if len(self.opd) > 1:
+                self.opd = self.opd[1:]
+            else:
+                self.opd = []
+            while self.read_reg('CX') != 0:
+                self.control_circuit()
+                res = self.read_reg('CX')
+                self.write_reg('CX', res - 1)
+                if self.FR.zero == 1:
+                    break
+
         else:
             sys.exit("operation code not support")
 

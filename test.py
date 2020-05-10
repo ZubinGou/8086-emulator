@@ -1,3 +1,2 @@
-a = 7
-print(a >> 3 \
-    & 1)
+space = ['0'] * 13
+print(space[3] + space[2])
