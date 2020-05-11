@@ -138,6 +138,10 @@ class MainWindow(object):
         editor.setReadOnly()
 
         assembly = editor.toPlainText()
+        if not assembly:
+            self.console.appendPlainText("Input Error.")
+            self.restoreEditor()
+            return
         self.exe_file = self.assembler.compile(assembly)
         self.memory.load(self.exe_file)  # load code segment
         self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory, self.console)
