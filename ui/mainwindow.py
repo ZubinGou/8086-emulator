@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread
 from PyQt5 import uic
 
-from ui.codeeditor import CodeEditor, AssemblyHighlighter
+from ui.codeeditor import CodeEditor
 from ui.models import (RegistersModel, RegistersModel2, MemoryModel, MemoryModel2, MemoryModel3)
 
 import re
@@ -57,7 +57,6 @@ class MainWindow(object):
         # Assembly editor get focus on start
         self.asmEdit = self.gui.findChild(CodeEditor, "asmEdit")
         self.asmEdit.setFocus()
-        AssemblyHighlighter(self.asmEdit.document())
 
     def setupSplitters(self):
         mainsplitter = self.gui.findChild(QSplitter, "mainsplitter")
