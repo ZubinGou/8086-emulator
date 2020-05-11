@@ -6,10 +6,10 @@ class Memory(object):
     def __init__(self, max_space, seg_size):
         self.max_space = max_space
         self.seg_size = seg_size
-        self.space = [0] * self.max_space
+        self.space = [['0']] * self.max_space
 
     def is_null(self, loc):
-        return self.space[loc] == 0
+        return self.space[loc] == ['0']
 
     def verify(self, loc):
         # Verify valid address

@@ -136,7 +136,7 @@ class Assembler(object):
         seg_ins = instructions[ip]
         seg_tmp = seg_ins[0]
         seg_name = self.seg_id[seg_tmp] # CS DS SS ES
-        self.space[seg_name] = [0] * int('10000', 16)
+        self.space[seg_name] = [['0']] * int('10000', 16)
         for i in range(ip+1, len(instructions)):
             ins = instructions[i]
             for j in range(len(ins)):
