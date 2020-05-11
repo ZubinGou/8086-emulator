@@ -61,9 +61,10 @@ class MainWindow(object):
 
     def setupSplitters(self):
         mainsplitter = self.gui.findChild(QSplitter, "mainsplitter")
-        mainsplitter.setStretchFactor(0, 3)
-        mainsplitter.setStretchFactor(1, 8)
-        mainsplitter.setStretchFactor(2, 3)
+        mainsplitter.setStretchFactor(0, 5)
+        mainsplitter.setStretchFactor(1, 12)
+        mainsplitter.setStretchFactor(2, 4)
+        mainsplitter.setStretchFactor(3, 4)
 
         leftsplitter = self.gui.findChild(QSplitter, "leftsplitter")
         leftsplitter.setStretchFactor(0, 5)
