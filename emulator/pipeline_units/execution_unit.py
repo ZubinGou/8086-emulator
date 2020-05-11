@@ -61,6 +61,11 @@ class execution_unit(object):
                 self.opd.remove('DWORD')
             else:
                 sys.exit("Runtime Error: Unexpected PTR")
+        if self.opcode in string_manipulation_ins:
+            if 'B' in self.opcode:
+                self.opbyte = 1
+            else:
+                self.opbyte = 2
 
     def read_reg(self, reg):
         if reg in self.biu_regs:
@@ -797,6 +802,7 @@ class execution_unit(object):
             dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
             res_list = self.bus.read_byte(src_adr)
             self.write_mem(dst_adr, res_list)
+            print("wher")
             if self.FR.direction == 0:
                 self.inc_reg('SI', 1)
                 self.inc_reg('DI', 1)
@@ -960,6 +966,8 @@ class execution_unit(object):
                 self.opd = self.opd[1:]
             else:
                 self.opd = []
+            self.get_opbyte()
+            
             while self.read_reg('CX') != 0:
                 self.control_circuit()
                 res = self.read_reg('CX')
@@ -971,6 +979,7 @@ class execution_unit(object):
                 self.opd = self.opd[1:]
             else:
                 self.opd = []
+            self.get_opbyte()
             while self.read_reg('CX') != 0:
                 self.control_circuit()
                 res = self.read_reg('CX')
@@ -984,6 +993,7 @@ class execution_unit(object):
                 self.opd = self.opd[1:]
             else:
                 self.opd = []
+            self.get_opbyte()
             while self.read_reg('CX') != 0:
                 self.control_circuit()
                 res = self.read_reg('CX')
@@ -997,6 +1007,7 @@ class execution_unit(object):
                 self.opd = self.opd[1:]
             else:
                 self.opd = []
+            self.get_opbyte()
             while self.read_reg('CX') != 0:
                 self.control_circuit()
                 res = self.read_reg('CX')
@@ -1010,6 +1021,7 @@ class execution_unit(object):
                 self.opd = self.opd[1:]
             else:
                 self.opd = []
+            self.get_opbyte()
             while self.read_reg('CX') != 0:
                 self.control_circuit()
                 res = self.read_reg('CX')

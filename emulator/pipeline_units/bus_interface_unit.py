@@ -40,10 +40,10 @@ class bus_interface_unit(object):
 
     def read_byte(self, loc):
         return self.memory.rb(loc)
-    
+
     def read_word(self, loc):
         return self.read_byte(loc + 1) + self.read_byte(loc)
-    
+
     def read_dword(self, loc):
         # 返回list
         return self.read_byte(loc + 3) + self.read_byte(loc + 2) + \
@@ -63,13 +63,17 @@ class bus_interface_unit(object):
         if isinstance(content, int):
             self.write_byte(loc, content & 0x0ff)
             self.write_byte(loc + 1, (content >> 8) & 0x0ff)
+        elif isinstance(content, list):
+            for res in content:
+                self.write_byte(loc, [res])
+                loc += 1
         else:
-            sys.exit("Error write_byte")
+            sys.exit("Error write_word")
 
     def write_dword(self, loc, content): # little endian
         if isinstance(content, int):
-            self.write_byte(loc, content & 0x0ff) 
-            self.write_byte(loc + 1, (content >> 8) & 0x0ff) 
+            self.write_byte(loc, content & 0x0ff)
+            self.write_byte(loc + 1, (content >> 8) & 0x0ff)
             self.write_byte(loc + 2, (content >> 16) & 0x0ff)
             self.write_byte(loc + 3, content >> 24)
         else:
@@ -115,4 +119,3 @@ class bus_interface_unit(object):
                 self.fetch_one_instruction()
             else:
                 break
-    
