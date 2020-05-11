@@ -1,37 +1,50 @@
-;ALP to Sort a set of unsigned integer numbers in ascending/ descending
-;order using Bubble sort algorithm.
 NAME Requirement
 TITLE bubble_sort
 
 ASSUME CS:CODE,DS:DATA
 
 DATA SEGMENT
-    A DW 0005H, 0ABCDH, 5678H, 1234H, 0EFCDH, 45EFH
+    VAL DB 12H,7H,10H,2H,6H
+    COUNT DW 5
 DATA ENDS
 
-CODE SEGMENT
-    START: MOV AX,DATA
-           MOV DS,AX
-           MOV SI,0000H
-           MOV BX,A[SI]
-           DEC BX
+CODE SEGMENT 
+    START:
+    MOV AX,DATA
+    MOV DS,AX 
+    
+    MOV CX,COUNT       
+    DEC CX
        
-       X2: MOV CX,BX
-           MOV SI,02H
-           
-       X1: MOV AX,A[SI]
-           INC SI
-           INC SI
-           CMP AX,A[SI]
-           JA X3
-           XCHG AX,A[SI]
-           MOV A[SI-2],AX
-           
-       X3: LOOP X1
-           DEC BX
-           JNZ X2
-           
-           MOV AH,4CH
-           INT 21H
+    NEXTSCAN:
+    MOV BX,CX
+    MOV SI,0
+    NEXTCOMP:
+    MOV AL,VAL[SI]
+    MOV DL,VAL[SI+1]
+    CMP AL,DL
+    JC NOSWAP
+    MOV VAL[SI],DL
+    MOV VAL[SI+1],AL
+    NOSWAP:
+    INC SI
+    DEC BX
+    JNZ NEXTCOMP
+    LOOP NEXTSCAN
+    
+    
+    print:
+	        mov cx,count
+	        xor si,si
+    print_again:
+		    mov al,VAL[si]
+			out 0,al
+			inc si
+            CMP cx,si
+			jg print_again
+        
+
+    MOV AH,4CH
+    INT 21H
 CODE ENDS
-END START
+END START 
