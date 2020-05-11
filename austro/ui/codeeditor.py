@@ -3,9 +3,6 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-from austro.asm.assembler import OPCODES, REGISTERS
-
-
 class CodeEditor(QPlainTextEdit):
     lineNumberArea = None
 
@@ -159,7 +156,7 @@ class AssemblyHighlighter(QSyntaxHighlighter):
 
         self.opcodeFormat.setForeground(Qt.darkBlue)
         self.opcodeFormat.setFontWeight(QFont.Bold)
-        opcodePatterns = list(OPCODES.keys())
+        opcodePatterns = list()
         for pattern in opcodePatterns:
             rule = HighlightingRule()
             rule.pattern = QRegExp(r'\b%s\b' % pattern, Qt.CaseInsensitive)
@@ -168,7 +165,7 @@ class AssemblyHighlighter(QSyntaxHighlighter):
 
         self.registerFormat.setForeground(Qt.darkMagenta)
         self.registerFormat.setFontWeight(QFont.Bold)
-        registerPatterns = list(REGISTERS.keys())
+        registerPatterns = list()
         for pattern in registerPatterns:
             rule = HighlightingRule()
             rule.pattern = QRegExp(r'\b%s\b' % pattern, Qt.CaseInsensitive)
