@@ -4,8 +4,10 @@ TITLE multiply_2_32b
 assume cs:code, ds:data
 
 data segment; data segment starts
-    a dw 5678h, 1234h, 5 dup(0)         ;a is 32bit number a=1234 5678
-    b dw 1111h, 1111h, 5 dup(0)         ;b is 32bit number b=1111 1111
+    a dw 5678h, 1234h
+      dw 5 dup(0)         ;a is 32bit number a=1234 5678
+    b dw 1111h, 1111h
+      dw 5 dup(0)         ;b is 32bit number b=1111 1111
     c dw 4 dup(?)                       ;reserve 4 words
 data ends
 
