@@ -29,20 +29,20 @@ class MemoryModel(DataModel):
     def __init__(self, BIU, parent=None):
         super(MemoryModel, self).__init__(("Addr.", "Data"), parent)
 
-        # memory范围显示不全
+        # memory范围显示不全 code
         for addr in range(int('30000', 16), int('300ff', 16)):
             info = BIU.read_byte(addr)
             if isinstance(info, int):
                 item = (hex(addr), hex(info))
             else:
-                item = (hex(addr), info[0])
+                item = (hex(addr), ' '.join(info))
             self._rootItem.appendChild(DataItem(item))
 
 class MemoryModel2(DataModel):
     def __init__(self, BIU, parent=None):
         super(MemoryModel2, self).__init__(("Addr.", "Data"), parent)
 
-        # memory范围显示不全
+        # memory范围显示不全 stack
         for addr in range(int('50000', 16), int('500ff', 16)):
             info = BIU.read_byte(addr)
             if isinstance(info, int):
@@ -55,7 +55,7 @@ class MemoryModel3(DataModel):
     def __init__(self, BIU, parent=None):
         super(MemoryModel3, self).__init__(("Addr.", "Data"), parent)
 
-        # memory范围显示不全
+        # memory范围显示不全 data
         for addr in range(int('20000', 16), int('200ff', 16)):
             info = BIU.read_byte(addr)
             if isinstance(info, int):
