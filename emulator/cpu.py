@@ -5,20 +5,30 @@ from emulator.assembler import Assembler
 
 class CPU(object):
     
-    def __init__(self, BIU, EU):
+    def __init__(self, BIU, EU, console):
         self.cycle_count = 0
         self.BIU = BIU
         self.EU = EU
+
+        self.console = console
 
     def iterate(self, debug=False):
         self.cycle_count += 1
         if debug:
             print(f"clock cycle {self.cycle_count}: fetching...")
+
+            if self.console:
+                self.console.appendPlainText(f"clock cycle {self.cycle_count}: fetching...")
+
         self.fetch_cycle()
 
         self.cycle_count += 1
         if debug:
             print(f"clock cycle {self.cycle_count}: executing...")
+
+            if self.console:
+                self.console.appendPlainText(f"clock cycle {self.cycle_count}: executing...")
+
         self.execute_cycle()
 
         if debug:
@@ -113,3 +123,7 @@ class CPU(object):
         # 打印结束状态
         print("Clock ended")
         print(f"CPU ran a total of {self.cycle_count} clock cycles")
+
+        if self.console:
+            self.console.appendPlainText("Clock ended")
+            self.console.appendPlainText(f"CPU ran a total of {self.cycle_count} clock cycles")

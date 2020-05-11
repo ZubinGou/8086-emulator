@@ -48,10 +48,10 @@ def main():
     # cache = Cache_memory(CACHE_SIZE)
     # cache.space = memory.space[reg.CS:(reg.CS+SEGMENT_SIZE)]
 
-    BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, exe_file, memory)
-    EU = execution_unit.execution_unit(BIU)
+    BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, exe_file, memory, None)
+    EU = execution_unit.execution_unit(BIU, None)
 
-    cpu = CPU(BIU, EU)
+    cpu = CPU(BIU, EU, None)
     print("\nCPU initialized successfully.")
 
     while not cpu.check_done():

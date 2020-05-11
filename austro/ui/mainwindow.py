@@ -34,17 +34,19 @@ def _resource(*rsc):
 class MainWindow(object):
     def __init__(self, qApp=None):
 
+        self.gui = uic.loadUi(_resource('mainwindow.ui'))
+        # Get console area
+        self.console = self.gui.findChild(QPlainTextEdit, "txtConsole")
+
         self.assembler = Assembler(DS_START, CS_START, SS_START, ES_START)
         self.memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
 
         self.exe_file = self.assembler.compile(open('emulator/nop.asm').read())
-        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory)
-        self.EU = execution_unit.execution_unit(self.BIU)
-        self.cpu2 = CPU(self.BIU, self.EU)
+        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory, self.console)
+        self.EU = execution_unit.execution_unit(self.BIU, self.console)
+        self.cpu = CPU(self.BIU, self.EU, self.console)
 
         qApp.lastWindowClosed.connect(self.stopAndWait)
-
-        self.gui = uic.loadUi(_resource('mainwindow.ui'))
         self.setupEditorAndDiagram()
         self.setupSplitters()
         self.setupModels()
@@ -56,9 +58,6 @@ class MainWindow(object):
         self.asmEdit = self.gui.findChild(CodeEditor, "asmEdit")
         self.asmEdit.setFocus()
         AssemblyHighlighter(self.asmEdit.document())
-
-        # Get console area
-        self.console = self.gui.findChild(QPlainTextEdit, "txtConsole")
 
     def setupSplitters(self):
         mainsplitter = self.gui.findChild(QSplitter, "mainsplitter")
@@ -76,13 +75,13 @@ class MainWindow(object):
         middlesplitter.setStretchFactor(1, 1)
 
     def setupModels(self):
-        self.genRegsModel = RegistersModel(self.cpu2.EU, (
+        self.genRegsModel = RegistersModel(self.cpu.EU, (
                 'AX', 'BX', 'CX', 'DX', 'SP', 'BP', 'SI', 'DI',
             ))
-        self.specRegsModel = RegistersModel(self.cpu2.BIU, (
+        self.specRegsModel = RegistersModel(self.cpu.BIU, (
                 'DS', 'CS', 'SS', 'ES', 'IP',
             ))
-        self.stateRegsModel = RegistersModel2(self.cpu2.EU, (
+        self.stateRegsModel = RegistersModel2(self.cpu.EU, (
                 'CF', 'PF', 'AF', 'Z', 'S', 'O', 'TF', 'IF', 'DF',
             ))
         self.memoryModel = MemoryModel(self.BIU.memory)
@@ -141,27 +140,27 @@ class MainWindow(object):
         assembly = editor.toPlainText()
         self.exe_file = self.assembler.compile(assembly)
         self.memory.load(self.exe_file)  # load code segment
-        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory)
-        self.EU = execution_unit.execution_unit(self.BIU)
-        self.cpu2 = CPU(self.BIU, self.EU)
+        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory, self.console)
+        self.EU = execution_unit.execution_unit(self.BIU, self.console)
+        self.cpu = CPU(self.BIU, self.EU, self.console)
         self.console.appendPlainText("CPU initialized successfully.")
 
     def runAction(self):
         self.actionRun.setEnabled(False)
         self.actionStep.setEnabled(False)
 
-        while not self.cpu2.check_done():
-            self.cpu2.iterate(debug=False)
+        while not self.cpu.check_done():
+            self.cpu.iterate(debug=False)
             self.refreshModels()
-        self.cpu2.print_end_state()
+        self.cpu.print_end_state()
         self.stopAction()
 
     def nextInstruction(self):
-        if not self.cpu2.check_done():
-            self.cpu2.iterate(debug=False)
+        if not self.cpu.check_done():
+            self.cpu.iterate(debug=False)
             self.refreshModels()
         else:
-            self.cpu2.print_end_state()
+            self.cpu.print_end_state()
             self.stopAction()
 
     def stopAndWait(self):

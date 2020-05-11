@@ -7,7 +7,7 @@ from emulator.assembler import to_decimal
 
 class execution_unit(object):
 
-    def __init__(self, BIU):
+    def __init__(self, BIU, console):
         self.IR = []                 # 指令寄存器
         self.opcode = ''             # 操作码
         self.opd = []                # 操作数 Operands
@@ -31,6 +31,8 @@ class execution_unit(object):
         }
         self.eu_regs = list(self.reg.keys()) + ['AL', 'AH', 'BL', 'BH', 'CL', 'CH', 'DL', 'DH']
         self.biu_regs = list(BIU.reg.keys()) # 'DS', 'CS', 'SS', 'ES', 'IP'
+
+        self.console = console
 
     def run(self):
         self.IR = self.bus.instruction_queue.get()
@@ -73,6 +75,10 @@ class execution_unit(object):
 
     def write_reg(self, reg, num):
         print(f"writing {hex(num)} => {num} to {reg} ...")
+
+        if self.console:
+            self.console.appendPlainText(f"writing {hex(num)} => {num} to {reg} ...")
+
         num = self.to_unsigned(num) & 0xffff
         if reg in self.biu_regs:
             self.bus.reg[reg] = num
@@ -110,6 +116,10 @@ class execution_unit(object):
             else:
                 address += self.read_reg('DS') << 4
         print("Get Address", hex(address), "from operand:", opd)
+
+        if self.console:
+            self.console.appendPlainText("Get Address " + hex(address) + " from operand: " + opd)
+
         return address
 
     def get_offset(self, opd):
@@ -169,6 +179,13 @@ class execution_unit(object):
             res = 0
             assert res_list, "Empty memory space"
             print("res_list", res_list)
+
+            if self.console:
+                self.console.appendPlainText("res_list")
+                #有小问题
+                for num in res_list:
+                    self.console.appendPlainText(" " + num)
+
             for num in res_list:
                 res = (res << 8) + (int(num, 16) & 0xff)
         # 立即数
@@ -839,6 +856,11 @@ class execution_unit(object):
             elif ':' in self.opd[0]:    # 长转移：jmp cs:ip
                 self.opd = [s for s in re.split(' |:', self.opd[0]) if s]
                 print(self.opd)
+
+                #未调试
+                if self.console:
+                    self.console.appendPlainText(self.opd)
+
                 self.write_reg('CS', self.get_int(self.opd[0]))
                 self.write_reg('IP', self.get_int(self.opd[1]))
             else:                     # 短转移、近转移、寄存器转移 jmp ip/reg
@@ -1261,6 +1283,10 @@ class execution_unit(object):
             port = self.get_int(self.opd[0])
             val = self.read_reg(self.opd[1])
             print("@Port {}: 0x{:<4x} => {}".format(port, val, val))
+
+            if self.console:
+                self.console.appendPlainText("@Port {}: 0x{:<4x} => {}".format(port, val, val))
+
         else:
             sys.exit("operation code not support")
 
