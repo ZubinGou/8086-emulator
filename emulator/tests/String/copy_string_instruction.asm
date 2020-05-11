@@ -25,10 +25,11 @@ CODE SEGMENT
             MOV CX,000AH
             REP MOVSB
             
-         X: MOV AL,SOURCE [SI]
-            MOV DEST [DI],AL
+         X: MOV AL,SOURCE[SI]
+            MOV DEST[DI],AL
             INC SI
             INC DI
+            DEC CX
             LOOP X
             
             MOV AH,4CH

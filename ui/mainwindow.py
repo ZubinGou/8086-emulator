@@ -205,7 +205,7 @@ class MainWindow(object):
             if answer == QMessageBox.Cancel:
                 return
 
-        self.asmEdit.setPlainText(open(filename).read())
+        self.asmEdit.setPlainText(open(filename, encoding='utf-8').read())
 
     def restoreEditor(self):
         # Enable/Disable actions
