@@ -1,4 +1,6 @@
 
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QBrush, QColor
 from ui.datamodel import DataItem, DataModel, DataModel2
 
 class RegistersModel(DataModel):
@@ -26,8 +28,10 @@ class RegistersModel2(DataModel2):
         return DataItem(item)
 
 class MemoryModel(DataModel):
-    def __init__(self, BIU, parent=None):
+    def __init__(self, BIU, ip, parent=None):
         super(MemoryModel, self).__init__(("Addr.", "Data"), parent)
+
+        self.ip = ip
 
         # memory范围显示不全 code
         for addr in range(int('30000', 16), int('300ff', 16)):
@@ -37,6 +41,12 @@ class MemoryModel(DataModel):
             else:
                 item = (hex(addr), ' '.join(info))
             self._rootItem.appendChild(DataItem(item))
+
+    def data(self, index, role):
+        if role == Qt.BackgroundRole and self.ip >= 0 and index.row() == self.ip:
+            return QBrush(QColor("#C6DBAE"))
+
+        return super(MemoryModel, self).data(index, role)
 
 class MemoryModel2(DataModel):
     def __init__(self, BIU, parent=None):

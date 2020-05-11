@@ -46,6 +46,8 @@ class MainWindow(object):
         self.EU = execution_unit.execution_unit(self.BIU, self.console)
         self.cpu = CPU(self.BIU, self.EU, self.console)
 
+        self.ip = 0
+
         qApp.lastWindowClosed.connect(self.stopAndWait)
         self.setupEditorAndDiagram()
         self.setupSplitters()
@@ -84,7 +86,7 @@ class MainWindow(object):
         self.stateRegsModel = RegistersModel2(self.cpu.EU, (
                 'CF', 'PF', 'AF', 'Z', 'S', 'O', 'TF', 'IF', 'DF',
             ))
-        self.memoryModel = MemoryModel(self.BIU)
+        self.memoryModel = MemoryModel(self.BIU, self.ip)
         self.memoryModel2 = MemoryModel2(self.BIU)
         self.memoryModel3 = MemoryModel3(self.BIU)
 
@@ -218,6 +220,7 @@ class MainWindow(object):
         self.refreshModels()
 
     def refreshModels(self):
+        self.ip = self.BIU.reg['IP']
         self.setupModels()
         self.setupTrees()
 
