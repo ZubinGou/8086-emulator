@@ -301,37 +301,47 @@ class execution_unit(object):
         high = self.to_signed(int('0' + (self.opbyte * 8 - 1) * '1', 2))
         return num > high or num < low
 
+    def set_pf(self, result):
+        if self.popcount(result) % 2 == 0:
+            self.FR.parity = 1
+        else:
+            self.FR.parity = 0
+
+    def set_of(self, result):
+        if self.is_overflow(result):
+            self.FR.overflow = 1
+        else:
+            self.FR.overflow = 0
+
+    def set_sf(self, result):
+        if self.to_signed(result) < 0:
+            self.FR.sign = 1
+        else:
+            self.FR.sign = 0
+
+    def set_zf(self, result):
+        if result == 0:
+            self.FR.zero = 1
+        else:
+            self.FR.zero = 0
+
+    def set_cf(self, result):
+        if result == True:
+            self.FR.carry = 1
+        else:
+            self.FR.carry = 0
+
     def arithmetic_ins(self):
         if self.opcode == 'ADD':
             res1 = self.get_int(self.opd[0])
             res2 = self.get_int(self.opd[1])
             result = (res1 + res2) & int("0x" + "f" * self.opbyte * 2, 16)
 
-            if self.is_overflow(res1 + res2):
-                self.FR.overflow = 1
-            else:
-                self.FR.overflow = 0
-
-            if ((self.to_unsigned(res1) + self.to_unsigned(res2)) >>
-                (self.opbyte * 8)) > 0:
-                self.FR.carry = 1
-            else:
-                self.FR.carry = 0
-
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_of(res1 + res2)
+            self.set_cf(((self.to_unsigned(res1) + self.to_unsigned(res2)) >> (self.opbyte * 8)) > 0)
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             self.put_int(self.opd[0], result)
 
@@ -341,31 +351,11 @@ class execution_unit(object):
             result = (res1 + res2 + self.FR.carry) & int(
                 "0x" + "f" * self.opbyte * 2, 16)
 
-            if self.is_overflow(res1 + res2 + self.FR.carry):
-                self.FR.overflow = 1
-            else:
-                self.FR.overflow = 0
-
-            if ((self.to_unsigned(res1) + self.to_unsigned(res2) +
-                 self.FR.carry) >> (self.opbyte * 8)) > 0:
-                self.FR.carry = 1
-            else:
-                self.FR.carry = 0
-
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_of(res1 + res2 + self.FR.carry)
+            self.set_cf(((self.to_unsigned(res1) + self.to_unsigned(res2) + self.FR.carry) >> (self.opbyte * 8)) > 0)
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             self.put_int(self.opd[0], result)
 
@@ -374,30 +364,11 @@ class execution_unit(object):
             res2 = self.get_int(self.opd[1])
             result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
 
-            if self.is_overflow(res1 - res2):
-                self.FR.overflow = 1
-            else:
-                self.FR.overflow = 0
-
-            if self.to_unsigned(res1) < self.to_unsigned(res2):
-                self.FR.carry = 1
-            else:
-                self.FR.carry = 0
-
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_of(res1 - res2)
+            self.set_cf(self.to_unsigned(res1) < self.to_unsigned(res2))
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             self.put_int(self.opd[0], result)
 
@@ -407,30 +378,14 @@ class execution_unit(object):
             result = (res1 - res2 - self.FR.carry) & int(
                 "0x" + "f" * self.opbyte * 2, 16)
 
-            if self.is_overflow(res1 - res2 - self.FR.carry):
-                self.FR.overflow = 1
+            self.set_of(res1 - res2 - self.FR.carry)
+            if self.FR.carry == 1:
+                self.set_cf(self.to_unsigned(res1) <= self.to_unsigned(res2))
             else:
-                self.FR.overflow = 0
-
-            if self.to_unsigned(res1) <= self.to_unsigned(res2):
-                self.FR.carry = 1
-            else:
-                self.FR.carry = 0
-
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+                self.set_cf(self.to_unsigned(res1) < self.to_unsigned(res2))
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             self.put_int(self.opd[0], result)
 
@@ -470,25 +425,10 @@ class execution_unit(object):
             res1 = self.get_int(self.opd[0])
             result = (res1 + 1) & int("0x" + "f" * self.opbyte * 2, 16)
 
-            if self.is_overflow(res1 + 1):
-                self.FR.overflow = 1
-            else:
-                self.FR.overflow = 0
-
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_of(res1 + 1)
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             self.put_int(self.opd[0], result)
 
@@ -496,25 +436,10 @@ class execution_unit(object):
             res1 = self.get_int(self.opd[0])
             result = (res1 - 1) & int("0x" + "f" * self.opbyte * 2, 16)
 
-            if self.is_overflow(res1 - 1):
-                self.FR.overflow = 1
-            else:
-                self.FR.overflow = 0
-
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_of(res1 - 1)
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             self.put_int(self.opd[0], result)
 
@@ -543,20 +468,9 @@ class execution_unit(object):
 
             self.FR.carry = self.FR.overflow = 0
 
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             self.put_int(self.opd[0], result)
 
@@ -567,20 +481,9 @@ class execution_unit(object):
 
             self.FR.carry = self.FR.overflow = 0
 
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             self.put_int(self.opd[0], result)
 
@@ -591,20 +494,9 @@ class execution_unit(object):
 
             self.FR.carry = self.FR.overflow = 0
 
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             self.put_int(self.opd[0], result)
 
@@ -615,30 +507,14 @@ class execution_unit(object):
         elif self.opcode == 'NEG':
             res1 = self.get_int(self.opd[0])
             result = ((~res1) + 1) & int("0x" + "f" * self.opbyte * 2, 16)
-            if self.is_overflow((~res1) + 1):
-                self.FR.overflow = 1
-            else:
-                self.FR.overflow = 0
 
-            if (self.to_unsigned(~res1) + 1) >> (self.opbyte * 8) > 0:
-                self.FR.carry = 1
-            else:
-                self.FR.carry = 0
+            self.set_of((~res1) + 1)
 
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
+            self.set_cf((self.to_unsigned(~res1) + 1) >> (self.opbyte * 8) > 0)
 
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             self.put_int(self.opd[0], result)
 
@@ -647,30 +523,11 @@ class execution_unit(object):
             res2 = self.get_int(self.opd[1])
             result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
 
-            if self.is_overflow(res1 - res2):
-                self.FR.overflow = 1
-            else:
-                self.FR.overflow = 0
-
-            if self.to_unsigned(res1) < self.to_unsigned(res2):
-                self.FR.carry = 1
-            else:
-                self.FR.carry = 0
-
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_of(res1 - res2)
+            self.set_cf(self.to_unsigned(res1) < self.to_unsigned(res2))
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
         elif self.opcode == 'TEST':
             res1 = self.get_int(self.opd[0])
@@ -679,20 +536,9 @@ class execution_unit(object):
 
             self.FR.carry = self.FR.overflow = 0
 
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
         else:
             sys.exit("operation code not support")
@@ -884,9 +730,9 @@ class execution_unit(object):
         elif self.opcode == 'CALL':
             if self.opbyte == 4 or ':' in self.opcode[0]:
                 self.inc_reg('SP', -2)
-                self.write_mem(self.bus.ss_sp, self.bus.reg['CS'])
+                self.write_mem(self.ss_sp, self.bus.reg['CS'])
             self.inc_reg('SP', -2)
-            self.write_mem(self.bus.ss_sp, self.bus.reg['IP'])
+            self.write_mem(self.ss_sp, self.bus.reg['IP'])
             self.opcode = 'JMP'
             self.control_circuit()
 
@@ -983,30 +829,12 @@ class execution_unit(object):
                 res2 = (res2 << 8) + int(num, 16)
 
             result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
-            if self.is_overflow(res1 - res2):
-                self.FR.overflow = 1
-            else:
-                self.FR.overflow = 0
 
-            if self.to_unsigned(res1) < self.to_unsigned(res2):
-                self.FR.carry = 1
-            else:
-                self.FR.carry = 0
-
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_of(res1 - res2)
+            self.set_cf(self.to_unsigned(res1) < self.to_unsigned(res2))
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             if self.FR.direction == 0:
                 self.inc_reg('SI', 1)
@@ -1028,30 +856,12 @@ class execution_unit(object):
                 res2 = (res2 << 8) + int(num, 16)
 
             result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
-            if self.is_overflow(res1 - res2):
-                self.FR.overflow = 1
-            else:
-                self.FR.overflow = 0
 
-            if self.to_unsigned(res1) < self.to_unsigned(res2):
-                self.FR.carry = 1
-            else:
-                self.FR.carry = 0
-
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_of(res1 - res2)
+            self.set_cf(self.to_unsigned(res1) < self.to_unsigned(res2))
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             if self.FR.direction == 0:
                 self.inc_reg('SI', 2)
@@ -1111,30 +921,12 @@ class execution_unit(object):
                 res2 = (res2 << 8) + int(num, 16)
 
             result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
-            if self.is_overflow(res1 - res2):
-                self.FR.overflow = 1
-            else:
-                self.FR.overflow = 0
 
-            if self.to_unsigned(res1) < self.to_unsigned(res2):
-                self.FR.carry = 1
-            else:
-                self.FR.carry = 0
-
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_of(res1 - res2)
+            self.set_cf(self.to_unsigned(res1) < self.to_unsigned(res2))
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             if self.FR.direction == 0:
                 self.inc_reg('DI', 1)
@@ -1150,30 +942,12 @@ class execution_unit(object):
                 res2 = (res2 << 8) + int(num, 16)
 
             result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
-            if self.is_overflow(res1 - res2):
-                self.FR.overflow = 1
-            else:
-                self.FR.overflow = 0
 
-            if self.to_unsigned(res1) < self.to_unsigned(res2):
-                self.FR.carry = 1
-            else:
-                self.FR.carry = 0
-
-            if self.popcount(result) % 2 == 0:
-                self.FR.parity = 1
-            else:
-                self.FR.parity = 0
-
-            if result == 0:
-                self.FR.zero = 1
-            else:
-                self.FR.zero = 0
-
-            if self.to_signed(result) < 0:
-                self.FR.sign = 1
-            else:
-                self.FR.sign = 0
+            self.set_of(res1 - res2)
+            self.set_cf(self.to_unsigned(res1) < self.to_unsigned(res2))
+            self.set_pf(result)
+            self.set_zf(result)
+            self.set_sf(result)
 
             if self.FR.direction == 0:
                 self.inc_reg('DI', 2)
