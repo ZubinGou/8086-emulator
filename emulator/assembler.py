@@ -191,8 +191,8 @@ class Assembler(object):
         var = ins[0]
         var_ori = ins_ori.split()[0]
         byte_list = []
-        # print("var:", var)
-        # print("var_ori:", var_ori)
+        print("var:", var)
+        print("var_ori:", var_ori)
         if len(ins) > 2 and ins[2][:3] == 'DUP': # db Imm dup ()
             times = to_decimal(ins[1])
             idx = ins_ori.find('(')
