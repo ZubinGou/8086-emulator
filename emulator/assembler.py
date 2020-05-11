@@ -18,7 +18,7 @@ def to_int_str(matched):
 
 def to_decimal(num):
     # all kinds of string of num to decimal
-    # print(f"converting {num} to decimal")
+    print(f"converting {num} to decimal")
     if isinstance(num, int):
         return int(num)
     if num.startswith('0x'):
@@ -81,7 +81,7 @@ class Assembler(object):
         print("\ninitital ip:", self.ip)
         return self
 
-    def __eval_id(self):
+    def __eval_id(self):  #TODO(Zubin) make it simple
         # 给出标号（用于jmp loop）和变量
         var_dict = {}
         for key, val in self.seg_id.items():
@@ -159,7 +159,7 @@ class Assembler(object):
                 tag = tag_list[0]
                 self.tags[tag] = {'seg': self.seg_adr[seg_name],
                                   'offset': hex(seg_ip),
-                                  'type': 0} # unknown type TODO
+                                  'type': 0} # TODO(Zubin) set type
                 if len(ins) == 1:                   # case1: start:\n mov ...
                     pass
                 else:
@@ -178,7 +178,7 @@ class Assembler(object):
                 var = ins[0]
                 self.vars[var] = {'seg': self.seg_adr[seg_name],
                                   'offset': hex(seg_ip),
-                                  'type': 0}      # var type TODO
+                                  'type': 0}      # TODO(Zubin) set type
                 var_ori = ins_ori.split()[0] # 实际的变量名（未转换大小写）
                 byte_list = self.__data_define(ins[1:], ins_ori.replace(var_ori, '', 1).strip())
                 self.space[seg_name][seg_ip:seg_ip+len(byte_list)] = byte_list
@@ -193,7 +193,7 @@ class Assembler(object):
         byte_list = []
         # print("var:", var)
         # print("var_ori:", var_ori)
-        if len(ins) > 2 and ins[2][:3] == 'DUP':     # db Imm dup ()
+        if len(ins) > 2 and ins[2][:3] == 'DUP': # db Imm dup ()
             times = to_decimal(ins[1])
             idx = ins_ori.find('(')
             dup_str = var + ' ' + ins_ori[idx + 1:-1]

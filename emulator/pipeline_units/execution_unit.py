@@ -72,17 +72,22 @@ class execution_unit(object):
         return res
 
     def write_reg(self, reg, num):
-        # print(f"writing {num} to {reg} ...")
+        print(f"writing {hex(num)} => {num} to {reg} ...")
+        num = self.to_unsigned(num) & 0xffff
         if reg in self.biu_regs:
             self.bus.reg[reg] = num
         elif reg[1] == 'H':
             reg = reg.replace('H', 'X')
-            self.reg[reg] = (self.reg[reg] & 0xff) + (num << 8)
+            self.reg[reg] = (self.reg[reg] & 0xff) + ((num & 0xff) << 8)
         elif reg[1] == 'L':
             reg = reg.replace('L', 'X')
-            self.reg[reg] = (self.reg[reg] & 0xff00) + num
+            self.reg[reg] = (self.reg[reg] & 0xff00) + (num & 0xff)
         else:
             self.reg[reg] = num
+
+    def inc_reg(self, reg, val):
+        # 增加或者减少寄存器的值
+        self.write_reg(reg, self.read_reg(reg) + val)
 
     def get_address(self, opd):
         # 解析所有内存寻址：直接、寄存器间接、基址、变址、基址变址、相对基址变址
@@ -104,7 +109,7 @@ class execution_unit(object):
                 address += self.read_reg('SS') << 4
             else:
                 address += self.read_reg('DS') << 4
-        # print("Get Address", hex(address), "from opd", opd)
+        print("Get Address", hex(address), "from operand:", opd)
         return address
 
     def get_offset(self, opd):
@@ -163,8 +168,9 @@ class execution_unit(object):
                 sys.exit("Opbyte Error")
             res = 0
             assert res_list, "Empty memory space"
+            print("res_list", res_list)
             for num in res_list:
-                res = (res << 8) + int(num, 16)
+                res = (res << 8) + (int(num, 16) & 0xff)
         # 立即数
         else:
             res = to_decimal(opd)
@@ -619,7 +625,7 @@ class execution_unit(object):
 
             self.put_int(self.opd[0], result)
 
-        elif self.opcode == 'CPM':
+        elif self.opcode == 'CMP':
             res1 = self.get_int(self.opd[0])
             res2 = self.get_int(self.opd[1])
             result = (res1 - res2) & int("0x" + "f" * self.opbyte * 2, 16)
@@ -794,7 +800,7 @@ class execution_unit(object):
 
     def stack_related_ins(self):
         if self.opcode == 'PUSH':
-            self.reg['SP'] -= 2
+            self.inc_reg('SP', -2)
             self.write_mem(self.ss_sp, self.get_int(self.opd[0]))
         elif self.opcode == 'POP':
             res_list = self.bus.read_word(self.ss_sp)
@@ -806,9 +812,9 @@ class execution_unit(object):
                 self.write_mem(ad,res)
             elif self.is_reg(self.opd[0]):
                 self.write_reg(self.opd[0], res)
-            self.reg['SP'] += 2
+            self.inc_reg('SP', 2)
         elif self.opcode == 'PUSHF':
-            self.reg['SP'] -= 2
+            self.inc_reg('SP', -2)
             self.write_mem(self.ss_sp, self.FR.get_int())
         elif self.opcode == 'POPF':
             res_list = self.bus.read_word(self.ss_sp)
@@ -816,7 +822,7 @@ class execution_unit(object):
             for num in res_list:
                 res = (res << 8) + int(num, 16)
             self.FR.set_int(res)
-            self.reg['SP'] += 2
+            self.inc_reg('SP', 2)
         else:
             sys.exit("operation code not support")
 
@@ -839,38 +845,38 @@ class execution_unit(object):
                 self.write_reg('IP', self.get_int(self.opd[0]))
 
         elif self.opcode == 'LOOP':
-            self.reg['CX'] -= 1
+            self.inc_reg('CX', -1)
             if self.reg['CX'] != 0:
                 self.write_reg('IP', self.get_int(self.opd[0]))
 
         elif self.opcode in ['LOOPE', 'LOOPZ']:
-            self.reg['CX'] -= 1
+            self.inc_reg('CX', -1)
             if self.reg['CX'] != 0 and self.FR.zero == 1:
                 self.write_reg('IP', self.get_int(self.opd[0]))
 
         elif self.opcode in ['LOOPNE', 'LOOPNZ']:
-            self.reg['CX'] -= 1
+            self.inc_reg('CX', -1)
             if self.reg['CX'] != 0 and self.FR.zero == 0:
                 self.write_reg('IP', self.get_int(self.opd[0]))
 
         elif self.opcode == 'CALL':
             if self.opbyte == 4 or ':' in self.opcode[0]:
-                self.reg['SP'] -= 2
+                self.inc_reg('SP', -2)
                 self.write_mem(self.bus.ss_sp, self.bus.reg['CS'])
-            self.reg['SP'] -= 2
+            self.inc_reg('SP', -2)
             self.write_mem(self.bus.ss_sp, self.bus.reg['IP'])
             self.opcode = 'JMP'
             self.control_circuit()
 
         elif self.opcode == 'RET':
             self.write_reg('IP', self.get_int(self.ss_sp))
-            self.reg['SP'] += 2
+            self.inc_reg('SP', 2)
 
         elif self.opcode == 'RETF':
             self.write_reg('IP', self.get_int(self.ss_sp))
-            self.reg['SP'] += 2
+            self.inc_reg('SP', 2)
             self.write_reg('CS', self.ss_sp)
-            self.reg['SP'] += 2
+            self.inc_reg('SP', 2)
 
         elif self.opcode in conditional_jump_ins:
             # 所有条件转移都是短转移
@@ -924,11 +930,11 @@ class execution_unit(object):
             res_list = self.bus.read_byte(src_adr)
             self.write_mem(dst_adr, res_list)
             if self.FR.direction == 0:
-                self.reg['SI'] += 1
-                self.reg['DI'] += 1
+                self.inc_reg('SI', 1)
+                self.inc_reg('DI', 1)
             else:
-                self.reg['SI'] -= 1
-                self.reg['DI'] -= 1
+                self.inc_reg('SI', -1)
+                self.inc_reg('DI', -1)
 
         elif self.opcode == 'MOVSW':
             src_adr = self.bus.reg['DS'] * 16 + self.reg['SI']
@@ -936,11 +942,11 @@ class execution_unit(object):
             res_list = self.bus.read_word(src_adr)
             self.write_mem(dst_adr, res_list)
             if self.FR.direction == 0:
-                self.reg['SI'] += 2
-                self.reg['DI'] += 2
+                self.inc_reg('SI', 2)
+                self.inc_reg('DI', 2)
             else:
-                self.reg['SI'] -= 2
-                self.reg['DI'] -= 2
+                self.inc_reg('SI', -2)
+                self.inc_reg('DI', -2)
 
         elif self.opcode == 'CMPSB':
             src_adr = self.bus.reg['DS'] * 16 + self.reg['SI']
@@ -981,11 +987,11 @@ class execution_unit(object):
                 self.FR.sign = 0
 
             if self.FR.direction == 0:
-                self.reg['SI'] += 1
-                self.reg['DI'] += 1
+                self.inc_reg('SI', 1)
+                self.inc_reg('DI', 1)
             else:
-                self.reg['SI'] -= 1
-                self.reg['DI'] -= 1
+                self.inc_reg('SI', -1)
+                self.inc_reg('DI', -1)
 
         elif self.opcode == 'CMPSW':
             src_adr = self.bus.reg['DS'] * 16 + self.reg['SI']
@@ -1026,11 +1032,11 @@ class execution_unit(object):
                 self.FR.sign = 0
 
             if self.FR.direction == 0:
-                self.reg['SI'] += 2
-                self.reg['DI'] += 2
+                self.inc_reg('SI', 2)
+                self.inc_reg('DI', 2)
             else:
-                self.reg['SI'] -= 2
-                self.reg['DI'] -= 2
+                self.inc_reg('SI', -2)
+                self.inc_reg('DI', -2)
 
         elif self.opcode == 'LODSB':
             src_adr = self.bus.reg['DS'] * 16 + self.reg['SI']
@@ -1040,9 +1046,9 @@ class execution_unit(object):
                 res = (res << 8) + int(num, 16)
             self.write_reg('AL', res)
             if self.FR.direction == 0:
-                self.reg['SI'] += 1
+                self.inc_reg('SI', 1)
             else:
-                self.reg['SI'] -= 1
+                self.inc_reg('SI', -1)
 
         elif self.opcode == 'LODSW':
             src_adr = self.bus.reg['DS'] * 16 + self.reg['SI']
@@ -1052,27 +1058,27 @@ class execution_unit(object):
                 res = (res << 8) + int(num, 16)
             self.write_reg('AX', res)
             if self.FR.direction == 0:
-                self.reg['SI'] += 2
+                self.inc_reg('SI', 2)
             else:
-                self.reg['SI'] -= 2
+                self.inc_reg('SI', -2)
 
         elif self.opcode == 'STOSB':
             dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
             res = self.read_reg('AL')
             self.bus.write_byte(dst_adr, res)
             if self.FR.direction == 0:
-                self.reg['DI'] += 1
+                self.inc_reg('DI', 1)
             else:
-                self.reg['DI'] -= 1
+                self.inc_reg('DI', -1)
 
         elif self.opcode == 'STOSW':
             dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
             res = self.read_reg('AX')
             self.bus.write_word(dst_adr, res)
             if self.FR.direction == 0:
-                self.reg['DI'] += 2
+                self.inc_reg('DI', 2)
             else:
-                self.reg['DI'] -= 2
+                self.inc_reg('DI', -2)
 
         elif self.opcode == 'SCASB':
             dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
@@ -1109,9 +1115,9 @@ class execution_unit(object):
                 self.FR.sign = 0
 
             if self.FR.direction == 0:
-                self.reg['DI'] += 1
+                self.inc_reg('DI', 1)
             else:
-                self.reg['DI'] -= 1
+                self.inc_reg('DI', -1)
 
         elif self.opcode == 'SCASW':
             dst_adr = self.bus.reg['ES'] * 16 + self.reg['DI']
@@ -1148,9 +1154,9 @@ class execution_unit(object):
                 self.FR.sign = 0
 
             if self.FR.direction == 0:
-                self.reg['DI'] += 2
+                self.inc_reg('DI', 2)
             else:
-                self.reg['DI'] -= 2
+                self.inc_reg('DI', -2)
 
         elif self.opcode == 'REP':
             self.opcode = self.opd[0]
