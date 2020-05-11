@@ -48,7 +48,9 @@ class DataModel(QAbstractItemModel):
         self._rootItem = DataItem(header)
 
     def format(self, data, bits):
-        return data
+        # return data
+        #未调试
+        return str.format("0x{0:0%dx}" % (16 // 4), data)
 
     def index(self, row, column=0, parent=QModelIndex()):
         if not self.hasIndex(row, column, parent):
