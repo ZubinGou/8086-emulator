@@ -29,7 +29,11 @@ class MemoryModel(DataModel):
     def __init__(self, BIU, parent=None):
         super(MemoryModel, self).__init__(("Addr.", "Data"), parent)
 
-        # 涉及memory的大小，内容
-        for addr in range(0, 4000):
-            item = (addr, BIU.read_word(addr))
+        # memory范围显示不全
+        for addr in range(int('20000', 16), int('20100', 16)):
+            info = BIU.read_byte(addr)
+            if isinstance(info, int):
+                item = (hex(addr), hex(info))
+            else:
+                item = (hex(addr), info[0])
             self._rootItem.appendChild(DataItem(item))

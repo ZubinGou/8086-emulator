@@ -1,10 +1,11 @@
 
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
+DATA_LEN = 4
 
 class DataItem(object):
     def __init__(self, data, parent=None):
         self._parentItem = parent
-        self._itemData = data#data为一个地址
+        self._itemData = data
         self._childItems = []
 
     def appendChild(self, item):
@@ -48,9 +49,11 @@ class DataModel(QAbstractItemModel):
         self._rootItem = DataItem(header)
 
     def format(self, data, bits):
-        # return data
         #未调试
-        return str.format("0x{0:0%dx}" % (16 // 4), data)
+        if isinstance(data, int):
+            return str.format("0x{0:0%dx}" % (DATA_LEN), data)
+        else:
+            return data
 
     def index(self, row, column=0, parent=QModelIndex()):
         if not self.hasIndex(row, column, parent):
