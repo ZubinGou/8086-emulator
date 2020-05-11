@@ -154,7 +154,7 @@
           </property>
           <widget class="QGroupBox" name="grpMemory">
            <property name="title">
-            <string>Memory ( Code )</string>
+            <string>Code Segment</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
@@ -171,7 +171,7 @@
           </widget>
           <widget class="QGroupBox" name="grpMemory2">
            <property name="title">
-            <string>Memory ( Stack )</string>
+            <string>Stack Segment</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_6">
             <item>
@@ -195,7 +195,7 @@
         <item row="0" column="0">
          <widget class="QGroupBox" name="grpMemory3">
           <property name="title">
-           <string>Memory ( Data )</string>
+           <string>Data Segment</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_11">
            <item>
