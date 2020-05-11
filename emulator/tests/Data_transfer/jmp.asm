@@ -28,7 +28,7 @@ codesg segment ; for
         je well
         ;org 110B
   hr1:  add ax, seg well ;0x15
-        jmp short plc1 
+        JA plc1 
   hr2:  mov bx, offset plc1 ;0x17
         mov ax, buff
         mov cx, buff[SI]
