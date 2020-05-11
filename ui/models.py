@@ -22,7 +22,7 @@ class RegistersModel2(DataModel2):
             self._rootItem.appendChild(self.createItem(item))
 
     def createItem(self, name):
-        item = (name, self.registers.FR.reg[name])#self.registers.get_reg(name)为根据name，找到对应寄存器的地址
+        item = (name, self.registers.FR.get_FR_reg(name))#self.registers.get_reg(name)为根据name，找到对应寄存器的地址
         return DataItem(item)
 
 class MemoryModel(DataModel):
