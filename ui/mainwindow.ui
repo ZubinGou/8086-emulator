@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>960</width>
-    <height>660</height>
+    <width>1000</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,14 +21,11 @@
     <normaloff>.</normaloff>.</iconset>
   </property>
   <widget class="QWidget" name="mainwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
+   <layout class="QGridLayout" name="gridLayout_8">
+    <item row="0" column="0">
      <widget class="QSplitter" name="mainsplitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="childrenCollapsible">
-       <bool>false</bool>
       </property>
       <widget class="QWidget" name="leftwidget" native="true">
        <layout class="QGridLayout" name="gridLayout_11">
@@ -149,15 +146,15 @@
        </layout>
       </widget>
       <widget class="QWidget" name="rightWidget" native="true">
-       <layout class="QGridLayout" name="gridLayout_2">
+       <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
-         <widget class="QSplitter" name="memorySplitter">
+         <widget class="QSplitter" name="rightsplitter1">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
           <widget class="QGroupBox" name="grpMemory">
            <property name="title">
-            <string>Memory</string>
+            <string>Memory ( Code )</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
@@ -172,6 +169,46 @@
             </item>
            </layout>
           </widget>
+          <widget class="QGroupBox" name="grpMemory2">
+           <property name="title">
+            <string>Memory ( Stack )</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_6">
+            <item>
+             <widget class="QTreeView" name="treeMemory2">
+              <property name="alternatingRowColors">
+               <bool>true</bool>
+              </property>
+              <property name="rootIsDecorated">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="rightWidget2" native="true">
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="grpMemory3">
+          <property name="title">
+           <string>Memory ( Data )</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_11">
+           <item>
+            <widget class="QTreeView" name="treeMemory3">
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <property name="rootIsDecorated">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
@@ -185,7 +222,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>960</width>
+     <width>1000</width>
      <height>22</height>
     </rect>
    </property>
@@ -453,7 +490,7 @@
   <customwidget>
    <class>CodeEditor</class>
    <extends>QPlainTextEdit</extends>
-   <header>austro/ui/codeeditor.h</header>
+   <header>ui/codeeditor.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

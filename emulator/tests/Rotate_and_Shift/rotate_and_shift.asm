@@ -6,18 +6,15 @@ ASSUME CS:CODE
 
 CODE SEGMENT
     START:  MOV AX,FFFFH
-            RCL AX
-            RCR AX
-            ROL AX
-            ROR AX
-            MOV AX,FFFFH
-            SAL AX
-            MOV AX,FFFFH
-            SAR AX
-            MOV AX,FFFFH
-            SHL AX
-            MOV AX,FFFFH
-            SRL AX
+            RCL AX,1
+            RCL AX,1
+            RCR AX,2
+            ROL AX,2
+            ROR AX,2
+            SAL AX,2
+            SAR AX,2
+            SHL AX,2
+            SHR AX,2
             
 CODE ENDS
 END START

@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread
 from PyQt5 import uic
 
-from austro.ui.codeeditor import CodeEditor, AssemblyHighlighter
-from austro.ui.models import (RegistersModel, RegistersModel2, MemoryModel)
+from ui.codeeditor import CodeEditor, AssemblyHighlighter
+from ui.models import (RegistersModel, RegistersModel2, MemoryModel, MemoryModel2, MemoryModel3)
 
 import re
 import sys
@@ -61,9 +61,10 @@ class MainWindow(object):
 
     def setupSplitters(self):
         mainsplitter = self.gui.findChild(QSplitter, "mainsplitter")
-        mainsplitter.setStretchFactor(0, 3)
-        mainsplitter.setStretchFactor(1, 8)
-        mainsplitter.setStretchFactor(2, 3)
+        mainsplitter.setStretchFactor(0, 5)
+        mainsplitter.setStretchFactor(1, 12)
+        mainsplitter.setStretchFactor(2, 4)
+        mainsplitter.setStretchFactor(3, 4)
 
         leftsplitter = self.gui.findChild(QSplitter, "leftsplitter")
         leftsplitter.setStretchFactor(0, 5)
@@ -85,6 +86,8 @@ class MainWindow(object):
                 'CF', 'PF', 'AF', 'Z', 'S', 'O', 'TF', 'IF', 'DF',
             ))
         self.memoryModel = MemoryModel(self.BIU)
+        self.memoryModel2 = MemoryModel2(self.BIU)
+        self.memoryModel3 = MemoryModel3(self.BIU)
 
     def setupTrees(self):
         treeGenericRegs = self.gui.findChild(QTreeView, "treeGenericRegs")
@@ -105,12 +108,24 @@ class MainWindow(object):
         treeStateRegs.resizeColumnToContents(0)
         treeStateRegs.resizeColumnToContents(1)
 
-        # Main vision tree memory
+        # memory
         self.treeMemory = self.gui.findChild(QTreeView, "treeMemory")
         treeMemory = self.treeMemory
         treeMemory.setModel(self.memoryModel)
         treeMemory.resizeColumnToContents(0)
         treeMemory.resizeColumnToContents(1)
+
+        self.treeMemory2 = self.gui.findChild(QTreeView, "treeMemory2")
+        treeMemory2 = self.treeMemory2
+        treeMemory2.setModel(self.memoryModel2)
+        treeMemory2.resizeColumnToContents(0)
+        treeMemory2.resizeColumnToContents(1)
+
+        self.treeMemory3 = self.gui.findChild(QTreeView, "treeMemory3")
+        treeMemory3 = self.treeMemory3
+        treeMemory3.setModel(self.memoryModel3)
+        treeMemory3.resizeColumnToContents(0)
+        treeMemory3.resizeColumnToContents(1)
 
     def setupActions(self):
         self.actionLoad = self.gui.findChild(QAction, "actionLoad")

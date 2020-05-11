@@ -115,8 +115,8 @@ class CPU(object):
         self.show_memory(self.BIU.reg['DS']*16, self.BIU.reg['DS']*16 + 40)
         print("\nPegisters:")
         self.show_regs()
-        print("\nIR: ", self.EU.IR)
-        print("Next ins:", self.BIU.next_ins)
+        print("\nIR:  ", self.EU.IR)
+        print("Next:", self.BIU.next_ins)
         print('-' * 80)
     
     def print_end_state(self):

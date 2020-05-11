@@ -2,8 +2,13 @@
 ;20,000H to 20,009. Store the result immediately after the series.
 NAME Arithmetic
 TITLE add_in_memory
+; Test Passed
+assume cs:code,ds:data
 
-assume cs:code
+DATA SEGMENT
+        a db 3 dup(9,11h,101b,0xa1)
+DATA ENDS
+
 
 CODE SEGMENT
     

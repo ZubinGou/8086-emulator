@@ -1,7 +1,7 @@
 import sys
 
 from PyQt5.QtWidgets import QApplication
-from austro.ui.mainwindow import MainWindow
+from ui.mainwindow import MainWindow
 
 
 if __name__ == "__main__":
