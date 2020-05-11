@@ -84,7 +84,7 @@ class MainWindow(object):
         self.stateRegsModel = RegistersModel2(self.cpu.EU, (
                 'CF', 'PF', 'AF', 'Z', 'S', 'O', 'TF', 'IF', 'DF',
             ))
-        self.memoryModel = MemoryModel(self.BIU.memory)
+        self.memoryModel = MemoryModel(self.BIU)
 
     def setupTrees(self):
         treeGenericRegs = self.gui.findChild(QTreeView, "treeGenericRegs")

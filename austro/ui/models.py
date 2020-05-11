@@ -26,10 +26,10 @@ class RegistersModel2(DataModel):
         return DataItem(item)
 
 class MemoryModel(DataModel):
-    def __init__(self, memory, parent=None):
+    def __init__(self, BIU, parent=None):
         super(MemoryModel, self).__init__(("Addr.", "Data"), parent)
 
         # 涉及memory的大小，内容
         for addr in range(0, 4000):
-            item = (addr, memory.rb(addr))
+            item = (addr, BIU.read_word(addr))
             self._rootItem.appendChild(DataItem(item))
