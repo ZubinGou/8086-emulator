@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread
 from PyQt5 import uic
 
-from austro.ui.codeeditor import CodeEditor, AssemblyHighlighter
-from austro.ui.models import (RegistersModel, RegistersModel2, MemoryModel)
+from ui.codeeditor import CodeEditor, AssemblyHighlighter
+from ui.models import (RegistersModel, RegistersModel2, MemoryModel)
 
 import re
 import sys

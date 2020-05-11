@@ -1,5 +1,5 @@
 
-from austro.ui.datamodel import DataItem, DataModel
+from ui.datamodel import DataItem, DataModel
 
 class RegistersModel(DataModel):
     def __init__(self, registers, items, parent=None):

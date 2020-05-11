@@ -453,7 +453,7 @@
   <customwidget>
    <class>CodeEditor</class>
    <extends>QPlainTextEdit</extends>
-   <header>austro/ui/codeeditor.h</header>
+   <header>ui/codeeditor.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
