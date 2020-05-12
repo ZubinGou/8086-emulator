@@ -73,7 +73,7 @@ class CodeEditor(QPlainTextEdit):
     def updateLineNumberAreaWidth(self, newBlockCount):
         self.setViewportMargins(self.lineNumberAreaWidth(), 0, 0, 0)
 
-    def highlightCurrentLine(self, lineColor=QColor("#9B988C"), force=False):
+    def highlightCurrentLine(self, lineColor=QColor("#55534B"), force=False):
         if not self.isReadOnly() or force:
             extraSelections = []
 

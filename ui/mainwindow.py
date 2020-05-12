@@ -190,7 +190,7 @@ class MainWindow(object):
         while not self.cpu.check_done():
             self.cpu.iterate(debug=False)
             self.refreshModels()
-            time.sleep(0.3)
+            # time.sleep(0.3)
         self.cpu.print_end_state()
         self.stopAction()
 
