@@ -43,8 +43,8 @@ class MainWindow(object):
         self.assembler = Assembler(DS_START, CS_START, SS_START, ES_START)
         self.memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
 
-        self.exe_file = self.assembler.compile(open('emulator/tests/Requirement/bubble_sort.asm').read())
-        self.asmEdit.setPlainText(open('emulator/tests/Requirement/bubble_sort.asm').read())
+        self.exe_file = self.assembler.compile(open(_resource('default.asm')).read())
+        self.asmEdit.setPlainText(open(_resource('default.asm')).read())
         self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory, self.console)
         self.EU = execution_unit.execution_unit(self.BIU, self.console)
         self.cpu = CPU(self.BIU, self.EU, self.console)
