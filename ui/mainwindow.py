@@ -184,6 +184,8 @@ class MainWindow(object):
 
         self.console.appendPlainText("CPU initialized successfully.")
 
+        self.refreshModels()
+
     def runAction(self):
         self.actionRun.setEnabled(False)
         self.actionStep.setEnabled(False)
@@ -228,6 +230,7 @@ class MainWindow(object):
                 return
 
         self.asmEdit.setPlainText(open(filename, encoding='utf-8').read())
+        self.restoreEditor()
 
     def restoreEditor(self):
         # Enable/Disable actions
