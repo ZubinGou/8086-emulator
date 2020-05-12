@@ -7,7 +7,7 @@ from PyQt5.QtCore import QThread
 from PyQt5 import uic
 
 from ui.codeeditor import CodeEditor, AssemblyHighlighter
-from ui.models import (RegistersModel, RegistersModel2, MemoryModel, MemoryModel2, MemoryModel3)
+from ui.models import (RegistersModel, FlagModel, CodeSegModel, StackSegModel, DataSegModel)
 
 import re
 import sys
@@ -95,12 +95,12 @@ class MainWindow(object):
         self.specRegsModel = RegistersModel(self.cpu.BIU, (
                 'DS', 'CS', 'SS', 'ES', 'IP',
             ))
-        self.stateRegsModel = RegistersModel2(self.cpu.EU, (
+        self.stateRegsModel = FlagModel(self.cpu.EU, (
                 'CF', 'PF', 'AF', 'Z', 'S', 'O', 'TF', 'IF', 'DF',
             ))
-        self.memoryModel = MemoryModel(self.BIU, self.ip)
-        self.memoryModel2 = MemoryModel2(self.BIU)
-        self.memoryModel3 = MemoryModel3(self.BIU)
+        self.CodeSegModel = CodeSegModel(self.BIU, self.ip)
+        self.StackSegModel = StackSegModel(self.BIU)
+        self.DataSegModel = DataSegModel(self.BIU)
 
     def setupTrees(self):
         treeGenericRegs = self.gui.findChild(QTreeView, "treeGenericRegs")
@@ -124,19 +124,19 @@ class MainWindow(object):
         # memory
         self.treeMemory = self.gui.findChild(QTreeView, "treeMemory")
         treeMemory = self.treeMemory
-        treeMemory.setModel(self.memoryModel)
+        treeMemory.setModel(self.CodeSegModel)
         treeMemory.resizeColumnToContents(0)
         treeMemory.resizeColumnToContents(1)
 
         self.treeMemory2 = self.gui.findChild(QTreeView, "treeMemory2")
         treeMemory2 = self.treeMemory2
-        treeMemory2.setModel(self.memoryModel2)
+        treeMemory2.setModel(self.StackSegModel)
         treeMemory2.resizeColumnToContents(0)
         treeMemory2.resizeColumnToContents(1)
 
         self.treeMemory3 = self.gui.findChild(QTreeView, "treeMemory3")
         treeMemory3 = self.treeMemory3
-        treeMemory3.setModel(self.memoryModel3)
+        treeMemory3.setModel(self.DataSegModel)
         treeMemory3.resizeColumnToContents(0)
         treeMemory3.resizeColumnToContents(1)
 

@@ -1,57 +1,13 @@
-
-from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
-
-
-class DataItem(object):
-    def __init__(self, data, parent=None):
-        self._parentItem = parent
-        self._itemData = data
-        self._childItems = []
-
-    def appendChild(self, item):
-        item._parentItem = self
-        self._childItems.append(item)
-
-    def child(self, row):
-        return self._childItems[row]
-
-    def childCount(self):
-        return len(self._childItems)
-
-    def columnCount(self):
-        return len(self._itemData)
-
-    def bits(self):
-        if self.parent() != None:
-            # return self._itemData[1].bits
-            return self._itemData[1]
-
-    def data(self, column):
-        if self.parent() != None and column == 1:
-            # return self._itemData[column].value
-            return self._itemData[column]
-
-        return self._itemData[column]
-
-    def row(self):
-        if self._parentItem:
-            return self._parentItem._childItems.index(self)
-
-        return 0
-
-    def parent(self):
-        return self._parentItem
-
-class DataModel(QAbstractItemModel):
+class DataModel2(QAbstractItemModel):
 
     def __init__(self, header, parent=None):
-        super(DataModel, self).__init__(parent)
+        super(DataModel2, self).__init__(parent)
         self._rootItem = DataItem(header)
 
     def format(self, data, bits):
         #未调试
         if isinstance(data, int):
-            return str.format("0x{0:0%dx}" % (4), data)
+            return str.format("0x{0:0%dx}" % 1, data)
         else:
             return data
 
@@ -133,4 +89,3 @@ class DataModel(QAbstractItemModel):
         first = self.index(0, 0)
         last = self.index(self.rowCount()-1, self.columnCount()-1)
         self.dataChanged.emit(first, last)
-

@@ -11,11 +11,12 @@ MEMORY_SIZE = int('FFFFF', 16)  # 内存空间大小 1MB
 CACHE_SIZE = int('10000', 16)  # 缓存大小 64KB
 SEGMENT_SIZE = int('10000', 16) # 段长度均为最大长度64kB（10000H）
 
-DS_START = int('2000', 16) # Initial value of data segment
-CS_START = int('3000', 16) # Initial value of code segment
-SS_START = int('5000', 16) # Initial value of stack segment
-ES_START = int('7000', 16) # Initial value of extra segment
-
+SEG_INIT = {
+    'DS': int('2000', 16), # Initial value of data segment
+    'CS': int('3000', 16), # Initial value of code segment
+    'SS': int('5000', 16), # Initial value of stack segment
+    'ES': int('7000', 16) # Initial value of extra segment
+}
 
 
 def main():
@@ -40,7 +41,7 @@ def main():
 
     with open(sys.argv[1], 'r', encoding='utf-8') as file:
         asm_code = file.read()
-    assembler = Assembler(DS_START, CS_START, SS_START, ES_START)
+    assembler = Assembler(SEG_INIT)
     exe_file = assembler.compile(asm_code)
     memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
     memory.load(exe_file) # load code segment
