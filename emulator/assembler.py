@@ -40,11 +40,11 @@ def to_decimal(num):
 
 class Assembler(object):
     # 汇编器 Actually It's an Interpreter :)
-    def __init__(self, ds_adr, cs_adr, ss_adr, es_adr):
+    def __init__(self, seg):
         self.name = ''
         self.title = ''
         self.space = {} # 段空间
-        self.seg_adr = {'DS': hex(ds_adr), 'CS': hex(cs_adr), 'SS': hex(ss_adr), 'ES': hex(es_adr)}
+        self.seg_adr = {'DS': hex(seg['DS']), 'CS': hex(seg['CS']), 'SS': hex(seg['SS']), 'ES': hex(seg['ES'])}
         self.seg_id = {} # 段名
         self.tags = {} # 标号
         self.vars = {} # 变量

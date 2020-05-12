@@ -4,76 +4,76 @@ TITLE quick_sort
 assume cs:code,ds:data
 
 data segment
-	dat dd 4,8,6,9,2,3,4,7,2,10
-	cnt dd ?
-	l dd ?
-	r dd ?
+	dat db 4,8,6,9,2,3,4,7,2,10
+	cnt db ?
+	l db ?
+	r db ?
 data ends
 
 code segment
 start:
-	mov eax,10
-	mov cnt,eax
-	call scanf
+	mov ax,10
+	mov cnt,ax
+	;call scanf
 	;初始化l,r
-	mov eax,0
-	mov l,eax;
-	mov eax,9
-	mov r,eax
+	mov ax,0
+	mov l,ax;
+	mov ax,9
+	mov r,ax
 	;调用快排
 	call quicksort
 	call print
-	exit
+
 ;封装交换函数
 swap:
 	;利用xchg 可以少用一个寄存器来充当临时变量
-	mov edx,dat[esi*4];
-	xchg edx,dat[ebx*4];
-	xchg edx,dat[esi*4];
+	mov dx,dat[si];
+	xchg dx,dat[bx];
+	xchg dx,dat[si];
 	ret
  
 quicksort:
-	mov eax,l
-	cmp eax,r
+	mov ax,l
+	cmp ax,r
 	jg over
-	xor esi,esi;
-	xor ebx,ebx;
-	mov esi,l;i
-	mov ebx,r;j
-	mov eax,dat[esi*4] 
+	xor si,si;
+	xor bx,bx;
+	mov si,l;i
+	mov bx,r;j
+	mov ax,dat[si] 
 	sort_again:
-	cmp ebx,esi;				while (i!=j)
+	cmp bx,si;				while (i!=j)
 	je over_loop;
 		loop_j_again:
-			cmp esi,ebx; 			while(i<j)
+			cmp si,bx; 			while(i<j)
 			jge over_loop
-			cmp eax,dat[ebx*4]; 	while (a[j]>=a[l])
+			cmp ax,dat[bx]; 	while (a[j]>=a[l])
 			jg loop_i_again
-			add ebx ,-1			;		j--
+			add bx ,-1			;		j--
 			jmp loop_j_again;	
 		loop_i_again:
-			cmp esi,ebx; 			while (i<j)
+			cmp si,bx; 			while (i<j)
 			jge over_loop
-			cmp eax,dat[esi*4]; 	while (a[l]>=a[i])
+			cmp ax,dat[si]; 	while (a[l]>=a[i])
 			jl compare;
-			add esi,1;					i++
+			add si,1;					i++
 			jmp loop_i_again;
 		compare:
-			cmp esi,ebx;			if (i>=j)
+			cmp si,bx;			if (i>=j)
 			jge over_loop;				break
 			call swap;				swap(i,j)
 	jmp sort_again
 	over_loop:
-		mov ebx,l;
+		mov bx,l;
 		call swap;				swap(i,l)
-		push esi; push i
+		push si; push i
 		push r  ;push r
-		mov r,esi
+		mov r,si
 		add r ,-1
 		call quicksort;			quicksort(l,i-1);
 		pop r
-		pop ebx
-		mov l,ebx;
+		pop bx
+		mov l,bx;
 		inc l
 		call quicksort;			quicksort(i+1,r);
 	over:
@@ -82,15 +82,15 @@ quicksort:
  
 ;封装一个输出函数
 print:
-	mov ecx,cnt
-	xor esi,esi
+	mov cx,cnt
+	xor si,si
     print_again:
-			mov eax,dat[esi*4]
-			call writeint
-			call crlf
-			inc esi;
+			mov ax,dat[si]
+			out 0,ax
+			inc si;
 			loop print_again
-	ret
+	MOV AH,4CH
+    INT 21H
 
 code ends
 end start

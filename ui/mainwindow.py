@@ -22,10 +22,13 @@ MEMORY_SIZE = int('FFFFF', 16)  # 内存空间大小 1MB
 CACHE_SIZE = int('10000', 16)  # 缓存大小 64KB
 SEGMENT_SIZE = int('10000', 16) # 段长度均为最大长度64kB（10000H）
 
-DS_START = int('2000', 16) # Initial value of data segment
-CS_START = int('3000', 16) # Initial value of code segment
-SS_START = int('5000', 16) # Initial value of stack segment
-ES_START = int('7000', 16) # Initial value of extra segment
+SEG_INIT = {
+    'DS': int('2000', 16), # Initial value of data segment
+    'CS': int('3000', 16), # Initial value of code segment
+    'SS': int('5000', 16), # Initial value of stack segment
+    'ES': int('7000', 16) # Initial value of extra segment
+}
+
 
 def _resource(*rsc):
     directory = os.path.dirname(__file__)
@@ -40,16 +43,17 @@ class MainWindow(object):
         # Get console area
         self.console = self.gui.findChild(QPlainTextEdit, "txtConsole")
 
-        self.assembler = Assembler(DS_START, CS_START, SS_START, ES_START)
+        self.assembler = Assembler(SEG_INIT)
         self.memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
 
-        self.exe_file = self.assembler.compile(open(_resource('default.asm')).read())
+        # self.exe_file = self.assembler.compile(open(_resource('default.asm')).read())
         self.asmEdit.setPlainText(open(_resource('default.asm')).read())
-        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory, self.console)
+
+        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.assembler, self.memory, self.console)
         self.EU = execution_unit.execution_unit(self.BIU, self.console)
         self.cpu = CPU(self.BIU, self.EU, self.console)
 
-        self.ip = 0
+        self.ip = 0 # ?
 
         qApp.lastWindowClosed.connect(self.stopAndWait)
         self.setupEditorAndDiagram()
@@ -171,6 +175,13 @@ class MainWindow(object):
         self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory, self.console)
         self.EU = execution_unit.execution_unit(self.BIU, self.console)
         self.cpu = CPU(self.BIU, self.EU, self.console)
+        self.refreshModels()
+        self.console.appendPlainText("Initial DS: " + hex(self.BIU.reg['DS']))
+        self.console.appendPlainText("Initial CS: " + hex(self.BIU.reg['CS']))
+        self.console.appendPlainText("Initial SS: " + hex(self.BIU.reg['SS']))
+        self.console.appendPlainText("Initial ES: " + hex(self.BIU.reg['ES']))
+        self.console.appendPlainText("Initial IP: " + hex(self.BIU.reg['IP']))
+
         self.console.appendPlainText("CPU initialized successfully.")
 
     def runAction(self):
@@ -180,6 +191,7 @@ class MainWindow(object):
         while not self.cpu.check_done():
             self.cpu.iterate(debug=False)
             self.refreshModels()
+            time.sleep(0.3)
         self.cpu.print_end_state()
         self.stopAction()
 
@@ -203,6 +215,7 @@ class MainWindow(object):
         self.restoreEditor()
 
     def openAction(self):
+        self.stopAction()
         filename = QFileDialog().getOpenFileName(self.gui, "Open File")[0]
         if os.path.exists(filename) and self.asmEdit.document().isModified():
             answer = QMessageBox.question(self.gui, "Modified Code",
