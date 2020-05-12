@@ -269,7 +269,3 @@ class Emitter(QThread):
 
     def run(self):
         self.fn(self.refresh)
-
-class Refresher(QObject):
-    def __init__(self):
-        QObject.__init__(self)
