@@ -193,13 +193,13 @@ class MainWindow(object):
         while not self.cpu.check_done():
             self.cpu.iterate(debug=False)
             refresh.emit()
-            time.sleep(0.3)
+            time.sleep(0.1)
+        self.cpu.print_end_state()
 
     def runAction(self):
         self.actionRun.setEnabled(False)
         self.actionStep.setEnabled(False)        
         self.emitter.start()
-        self.refreshModels()
 
     def nextInstruction(self):
         self.cpu.EU.interrupt = False
