@@ -37,16 +37,11 @@ class FlagModel(DataModel):
 class CodeSegModel(DataModel):
     def __init__(self, BIU, ip, parent=None):
         super(CodeSegModel, self).__init__(("Addr.", "Data"), parent)
-
         self.ip = ip
-
         # memory范围显示不全 code
         for addr in range(int('30000', 16), int('300ff', 16)):
             info = BIU.read_byte(addr)
-            if isinstance(info, int):
-                item = (hex(addr), hex(info))
-            else:
-                item = (hex(addr), ' '.join(info))
+            item = (hex(addr), ' '.join(info))
             self._rootItem.appendChild(DataItem(item))
 
     def data(self, index, role):
@@ -56,17 +51,21 @@ class CodeSegModel(DataModel):
         return super(CodeSegModel, self).data(index, role)
 
 class StackSegModel(DataModel):
-    def __init__(self, BIU, parent=None):
+    def __init__(self, BIU, sp, parent=None):
         super(StackSegModel, self).__init__(("Addr.", "Data"), parent)
-
+        self.sp = sp
         # memory范围显示不全 stack
-        for addr in range(int('50000', 16), int('500ff', 16)):
+        for addr in range(int('60000', 16), int('5ff00', 16), -1):
             info = BIU.read_byte(addr)
-            if isinstance(info, int):
-                item = (hex(addr), hex(info))
-            else:
-                item = (hex(addr), info[0])
+            item = (hex(addr), ' '.join(info))
             self._rootItem.appendChild(DataItem(item))
+
+    def data(self, index, role):
+        if role == Qt.BackgroundRole and self.sp >= 0 \
+            and index.row() == (0x10000 - self.sp) % 0x10000:
+            return QBrush(QColor("#EDE7AE"))
+
+        return super(StackSegModel, self).data(index, role)
 
 class DataSegModel(DataModel):
     def __init__(self, BIU, parent=None):

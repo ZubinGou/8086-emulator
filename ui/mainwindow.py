@@ -53,8 +53,6 @@ class MainWindow(object):
         self.EU = execution_unit.execution_unit(self.BIU, self.console)
         self.cpu = CPU(self.BIU, self.EU, self.console)
 
-        self.ip = 0 # ?
-
         qApp.lastWindowClosed.connect(self.stopAndWait)
         self.setupEditorAndDiagram()
         self.setupSplitters()
@@ -98,8 +96,8 @@ class MainWindow(object):
         self.stateRegsModel = FlagModel(self.cpu.EU, (
                 'CF', 'PF', 'AF', 'Z', 'S', 'O', 'TF', 'IF', 'DF',
             ))
-        self.CodeSegModel = CodeSegModel(self.BIU, self.ip)
-        self.StackSegModel = StackSegModel(self.BIU)
+        self.CodeSegModel = CodeSegModel(self.BIU, self.BIU.reg['IP'])
+        self.StackSegModel = StackSegModel(self.BIU, self.EU.reg['SP'])
         self.DataSegModel = DataSegModel(self.BIU)
 
     def setupTrees(self):
@@ -176,15 +174,14 @@ class MainWindow(object):
         self.EU = execution_unit.execution_unit(self.BIU, self.console)
         self.cpu = CPU(self.BIU, self.EU, self.console)
         self.refreshModels()
+
         self.console.appendPlainText("Initial DS: " + hex(self.BIU.reg['DS']))
         self.console.appendPlainText("Initial CS: " + hex(self.BIU.reg['CS']))
         self.console.appendPlainText("Initial SS: " + hex(self.BIU.reg['SS']))
         self.console.appendPlainText("Initial ES: " + hex(self.BIU.reg['ES']))
         self.console.appendPlainText("Initial IP: " + hex(self.BIU.reg['IP']))
-
         self.console.appendPlainText("CPU initialized successfully.")
 
-        self.refreshModels()
 
     def runAction(self):
         self.actionRun.setEnabled(False)
@@ -245,6 +242,7 @@ class MainWindow(object):
 
     def refreshModels(self):
         self.ip = self.BIU.reg['IP']
+        self.sp = self.EU.reg['SP']
         self.setupModels()
         self.setupTrees()
 
