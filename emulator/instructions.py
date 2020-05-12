@@ -16,3 +16,5 @@ all_ins = data_transfer_ins + arithmetic_ins + logical_ins + rotate_shift_ins + 
           string_manipulation_ins + flag_manipulation_ins + stack_related_ins + input_output_ins + miscellaneous_ins
 
 registers = ['AX', 'BX', 'CX', 'DX', 'AH', 'AL', 'BH', 'BL', 'CH', 'CL', 'DH', 'DL', 'CS', 'DS', 'SS', 'ES', 'SP', 'BP', 'SI', 'DI']
+
+pseudo_ins = ['DB', 'DW', 'DD', 'DQ', 'DUP', 'PTR', 'LABEL', 'ALIGN', 'ORG', 'END', 'ASSUME', 'SEGMENT', 'NAME', 'TITLE', 'ENDS', 'SHORT', 'NEAR', 'FAR', 'SEG', 'OFFSET', 'TYPE']

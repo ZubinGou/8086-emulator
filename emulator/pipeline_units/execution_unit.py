@@ -31,7 +31,7 @@ class execution_unit(object):
         }
         self.eu_regs = list(self.reg.keys()) + ['AL', 'AH', 'BL', 'BH', 'CL', 'CH', 'DL', 'DH']
         self.biu_regs = list(BIU.reg.keys()) # 'DS', 'CS', 'SS', 'ES', 'IP'
-
+        self.interrupt = False
         self.console = console
 
     def run(self):
@@ -185,18 +185,28 @@ class execution_unit(object):
             assert res_list, "Empty memory space"
             print("res_list", res_list)
 
-            # if self.console:
-            #     self.console.appendPlainText("res_list")
-            #     #有小问题
-            #     for num in res_list:
-            #         self.console.appendPlainText(" " + num)
-
             for num in res_list:
                 res = (res << 8) + (int(num, 16) & 0xff)
         # 立即数
         else:
             res = to_decimal(opd)
         # print("get_int", hex(res), "from", opd)
+        return res
+
+    def get_int_from_adr(self, adr):
+        # adsolute adr
+        if self.opbyte == 1:
+            res_list = self.bus.read_byte(adr)
+        elif self.opbyte == 2:
+            res_list = self.bus.read_word(adr)
+        elif self.opbyte == 4:
+            res_list = self.bus.read_dword(adr)
+        else:
+            sys.exit("Opbyte Error")
+        res = 0
+        assert res_list, "Empty memory space"
+        for num in res_list:
+            res = (res << 8) + (int(num, 16) & 0xff)
         return res
 
     def put_int(self, opd, num):
@@ -736,13 +746,13 @@ class execution_unit(object):
             self.control_circuit()
 
         elif self.opcode == 'RET':
-            self.write_reg('IP', self.get_int(self.ss_sp))
+            self.write_reg('IP', self.get_int_from_adr(self.ss_sp))
             self.inc_reg('SP', 2)
 
         elif self.opcode == 'RETF':
-            self.write_reg('IP', self.get_int(self.ss_sp))
+            self.write_reg('IP', self.get_int_from_adr(self.ss_sp))
             self.inc_reg('SP', 2)
-            self.write_reg('CS', self.ss_sp)
+            self.write_reg('CS', self.get_int_from_adr(self.ss_sp))
             self.inc_reg('SP', 2)
 
         elif self.opcode in conditional_jump_ins:
@@ -1074,7 +1084,7 @@ class execution_unit(object):
         if self.opcode == 'NOP':
             pass
         elif self.opcode == 'INT':
-            pass
+            self.interrupt = True
         elif self.opcode == 'IRET':
             pass
         elif self.opcode == 'XLAT':

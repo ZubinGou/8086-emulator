@@ -45,8 +45,6 @@ class MainWindow(object):
 
         self.assembler = Assembler(SEG_INIT)
         self.memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
-
-        # self.exe_file = self.assembler.compile(open(_resource('default.asm')).read())
         self.asmEdit.setPlainText(open(_resource('default.asm')).read())
 
         self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.assembler, self.memory, self.console)
@@ -66,7 +64,7 @@ class MainWindow(object):
         self.asmEdit.setStyleSheet("""QPlainTextEdit{
             font-family:'Consolas'; 
             color: #ccc; 
-            background-color: #2b2b2b;}""")
+            background-color: #282828;}""")
         self.highlight = AssemblyHighlighter(self.asmEdit.document())
 
 
@@ -172,6 +170,7 @@ class MainWindow(object):
             self.console.appendPlainText("Input Error.")
             self.restoreEditor()
             return
+        self.assembler = Assembler(SEG_INIT)
         self.exe_file = self.assembler.compile(assembly)
         self.memory.load(self.exe_file)  # load code segment
         self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory, self.console)
@@ -184,7 +183,7 @@ class MainWindow(object):
         self.console.appendPlainText("Initial SS: " + hex(self.BIU.reg['SS']))
         self.console.appendPlainText("Initial ES: " + hex(self.BIU.reg['ES']))
         self.console.appendPlainText("Initial IP: " + hex(self.BIU.reg['IP']))
-        self.console.appendPlainText("CPU initialized successfully.")
+        self.console.appendPlainText("CPU initialized successfully.\n")
 
 
     def runAction(self):
