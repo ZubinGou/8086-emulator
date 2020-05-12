@@ -7,7 +7,7 @@ from PyQt5.QtCore import QThread
 from PyQt5 import uic
 
 from ui.codeeditor import CodeEditor, AssemblyHighlighter
-from ui.models import (RegistersModel, RegistersModel2, MemoryModel, MemoryModel2, MemoryModel3)
+from ui.models import (RegistersModel, FlagModel, CodeSegModel, StackSegModel, DataSegModel)
 
 import re
 import sys
@@ -22,10 +22,13 @@ MEMORY_SIZE = int('FFFFF', 16)  # 内存空间大小 1MB
 CACHE_SIZE = int('10000', 16)  # 缓存大小 64KB
 SEGMENT_SIZE = int('10000', 16) # 段长度均为最大长度64kB（10000H）
 
-DS_START = int('2000', 16) # Initial value of data segment
-CS_START = int('3000', 16) # Initial value of code segment
-SS_START = int('5000', 16) # Initial value of stack segment
-ES_START = int('7000', 16) # Initial value of extra segment
+SEG_INIT = {
+    'DS': int('2000', 16), # Initial value of data segment
+    'CS': int('3000', 16), # Initial value of code segment
+    'SS': int('5000', 16), # Initial value of stack segment
+    'ES': int('7000', 16) # Initial value of extra segment
+}
+
 
 def _resource(*rsc):
     directory = os.path.dirname(__file__)
@@ -35,18 +38,22 @@ class MainWindow(object):
     def __init__(self, qApp=None):
 
         self.gui = uic.loadUi(_resource('mainwindow.ui'))
+        # Assembly editor get focus on start
+        self.asmEdit = self.gui.findChild(CodeEditor, "asmEdit")
         # Get console area
         self.console = self.gui.findChild(QPlainTextEdit, "txtConsole")
 
-        self.assembler = Assembler(DS_START, CS_START, SS_START, ES_START)
+        self.assembler = Assembler(SEG_INIT)
         self.memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
 
-        self.exe_file = self.assembler.compile(open(_resource('nop.asm')).read())
-        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory, self.console)
+        # self.exe_file = self.assembler.compile(open(_resource('default.asm')).read())
+        self.asmEdit.setPlainText(open(_resource('default.asm')).read())
+
+        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.assembler, self.memory, self.console)
         self.EU = execution_unit.execution_unit(self.BIU, self.console)
         self.cpu = CPU(self.BIU, self.EU, self.console)
 
-        self.ip = 0
+        self.ip = 0 # ?
 
         qApp.lastWindowClosed.connect(self.stopAndWait)
         self.setupEditorAndDiagram()
@@ -56,8 +63,6 @@ class MainWindow(object):
         self.setupActions()
 
     def setupEditorAndDiagram(self):
-        # Assembly editor get focus on start
-        self.asmEdit = self.gui.findChild(CodeEditor, "asmEdit")
         # self.asmEdit = QPlainTextEdit()
         self.asmEdit.setFocus()
         self.asmEdit.setStyleSheet("""QPlainTextEdit{
@@ -90,12 +95,12 @@ class MainWindow(object):
         self.specRegsModel = RegistersModel(self.cpu.BIU, (
                 'DS', 'CS', 'SS', 'ES', 'IP',
             ))
-        self.stateRegsModel = RegistersModel2(self.cpu.EU, (
+        self.stateRegsModel = FlagModel(self.cpu.EU, (
                 'CF', 'PF', 'AF', 'Z', 'S', 'O', 'TF', 'IF', 'DF',
             ))
-        self.memoryModel = MemoryModel(self.BIU, self.ip)
-        self.memoryModel2 = MemoryModel2(self.BIU)
-        self.memoryModel3 = MemoryModel3(self.BIU)
+        self.CodeSegModel = CodeSegModel(self.BIU, self.ip)
+        self.StackSegModel = StackSegModel(self.BIU)
+        self.DataSegModel = DataSegModel(self.BIU)
 
     def setupTrees(self):
         treeGenericRegs = self.gui.findChild(QTreeView, "treeGenericRegs")
@@ -119,19 +124,19 @@ class MainWindow(object):
         # memory
         self.treeMemory = self.gui.findChild(QTreeView, "treeMemory")
         treeMemory = self.treeMemory
-        treeMemory.setModel(self.memoryModel)
+        treeMemory.setModel(self.CodeSegModel)
         treeMemory.resizeColumnToContents(0)
         treeMemory.resizeColumnToContents(1)
 
         self.treeMemory2 = self.gui.findChild(QTreeView, "treeMemory2")
         treeMemory2 = self.treeMemory2
-        treeMemory2.setModel(self.memoryModel2)
+        treeMemory2.setModel(self.StackSegModel)
         treeMemory2.resizeColumnToContents(0)
         treeMemory2.resizeColumnToContents(1)
 
         self.treeMemory3 = self.gui.findChild(QTreeView, "treeMemory3")
         treeMemory3 = self.treeMemory3
-        treeMemory3.setModel(self.memoryModel3)
+        treeMemory3.setModel(self.DataSegModel)
         treeMemory3.resizeColumnToContents(0)
         treeMemory3.resizeColumnToContents(1)
 
@@ -170,7 +175,16 @@ class MainWindow(object):
         self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory, self.console)
         self.EU = execution_unit.execution_unit(self.BIU, self.console)
         self.cpu = CPU(self.BIU, self.EU, self.console)
+        self.refreshModels()
+        self.console.appendPlainText("Initial DS: " + hex(self.BIU.reg['DS']))
+        self.console.appendPlainText("Initial CS: " + hex(self.BIU.reg['CS']))
+        self.console.appendPlainText("Initial SS: " + hex(self.BIU.reg['SS']))
+        self.console.appendPlainText("Initial ES: " + hex(self.BIU.reg['ES']))
+        self.console.appendPlainText("Initial IP: " + hex(self.BIU.reg['IP']))
+
         self.console.appendPlainText("CPU initialized successfully.")
+
+        self.refreshModels()
 
     def runAction(self):
         self.actionRun.setEnabled(False)
@@ -179,6 +193,7 @@ class MainWindow(object):
         while not self.cpu.check_done():
             self.cpu.iterate(debug=False)
             self.refreshModels()
+            time.sleep(0.3)
         self.cpu.print_end_state()
         self.stopAction()
 
@@ -202,6 +217,7 @@ class MainWindow(object):
         self.restoreEditor()
 
     def openAction(self):
+        self.stopAction()
         filename = QFileDialog().getOpenFileName(self.gui, "Open File")[0]
         if os.path.exists(filename) and self.asmEdit.document().isModified():
             answer = QMessageBox.question(self.gui, "Modified Code",
@@ -214,6 +230,7 @@ class MainWindow(object):
                 return
 
         self.asmEdit.setPlainText(open(filename, encoding='utf-8').read())
+        self.restoreEditor()
 
     def restoreEditor(self):
         # Enable/Disable actions

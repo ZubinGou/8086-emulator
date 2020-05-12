@@ -25,28 +25,9 @@ class Memory(object):
         # content is a list
         self.verify(loc)
         self.space[loc] = content
-
-    # def read_word(self, loc):
-    #     # 小端法 高位在高地址
-    #     self.verify(loc)
-    #     self.verify(loc + 1)
-    #     return self.space[loc + 1] + self.space[loc]
-
-    # def read_dword(self, loc, content):
-    #     # 小端法 高位在高地址
-    #     self.verify(loc)
-    #     self.verify(loc + 3)
-    #     return self.space[loc + 3] + self.space[loc + 2] + \
-    #            self.space[loc + 1] + self.space[loc]
-
-    # def write_word(self, loc, content_list):
-    #     # 小端法 高位在高地址
-    #     self.verify(loc)
-    #     self.space[loc + 1] = content_list[0]
-    #     self.space[loc] = content_list[1:]
-
     def load(self, exe):
         # 加载器
+        self.refresh()
         print("loading assembly code to memory...")
         for seg, val in exe.space.items():
             adr = int(exe.seg_adr[seg], 16) * 16
@@ -56,6 +37,9 @@ class Memory(object):
 
         print("successfully loaded!")
         print()
+
+    def refresh(self):
+        self.space = [['0']] * self.max_space
 
 
 # class Cache_memory(Memory):

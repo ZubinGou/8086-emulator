@@ -81,8 +81,8 @@ class execution_unit(object):
     def write_reg(self, reg, num):
         print(f"writing {hex(num)} => {num} to {reg} ...")
 
-        if self.console:
-            self.console.appendPlainText(f"writing {hex(num)} => {num} to {reg} ...")
+        # if self.console:
+        #     self.console.appendPlainText(f"writing {hex(num)} => {num} to {reg} ...")
 
         num = self.to_unsigned(num) & 0xffff
         if reg in self.biu_regs:
@@ -185,11 +185,11 @@ class execution_unit(object):
             assert res_list, "Empty memory space"
             print("res_list", res_list)
 
-            if self.console:
-                self.console.appendPlainText("res_list")
-                #有小问题
-                for num in res_list:
-                    self.console.appendPlainText(" " + num)
+            # if self.console:
+            #     self.console.appendPlainText("res_list")
+            #     #有小问题
+            #     for num in res_list:
+            #         self.console.appendPlainText(" " + num)
 
             for num in res_list:
                 res = (res << 8) + (int(num, 16) & 0xff)
@@ -706,12 +706,6 @@ class execution_unit(object):
                 self.write_reg('IP', self.get_int(adr))
             elif ':' in self.opd[0]:    # 长转移：jmp cs:ip
                 self.opd = [s for s in re.split(' |:', self.opd[0]) if s]
-                print(self.opd)
-
-                #未调试
-                if self.console:
-                    self.console.appendPlainText(self.opd)
-
                 self.write_reg('CS', self.get_int(self.opd[0]))
                 self.write_reg('IP', self.get_int(self.opd[1]))
             else:                     # 短转移、近转移、寄存器转移 jmp ip/reg
