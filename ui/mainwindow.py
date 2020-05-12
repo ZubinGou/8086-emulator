@@ -35,6 +35,8 @@ class MainWindow(object):
     def __init__(self, qApp=None):
 
         self.gui = uic.loadUi(_resource('mainwindow.ui'))
+        # Assembly editor get focus on start
+        self.asmEdit = self.gui.findChild(CodeEditor, "asmEdit")
         # Get console area
         self.console = self.gui.findChild(QPlainTextEdit, "txtConsole")
 
@@ -42,6 +44,7 @@ class MainWindow(object):
         self.memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
 
         self.exe_file = self.assembler.compile(open('emulator/tests/Requirement/bubble_sort.asm').read())
+        self.asmEdit.setPlainText(open('emulator/tests/Requirement/bubble_sort.asm').read())
         self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory, self.console)
         self.EU = execution_unit.execution_unit(self.BIU, self.console)
         self.cpu = CPU(self.BIU, self.EU, self.console)
@@ -56,8 +59,6 @@ class MainWindow(object):
         self.setupActions()
 
     def setupEditorAndDiagram(self):
-        # Assembly editor get focus on start
-        self.asmEdit = self.gui.findChild(CodeEditor, "asmEdit")
         # self.asmEdit = QPlainTextEdit()
         self.asmEdit.setFocus()
         self.asmEdit.setStyleSheet("""QPlainTextEdit{
