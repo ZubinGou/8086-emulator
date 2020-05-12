@@ -154,10 +154,14 @@ class MainWindow(object):
         self.actionOpen = self.gui.findChild(QAction, "actionOpen")
         self.actionOpen.triggered.connect(self.openAction)
 
+        self.actionPause = self.gui.findChild(QAction, "actionPause")
+        self.actionPause.triggered.connect(self.pauseAction)
+
     def loadAssembly(self):
         # Enable/Disable actions
         self.actionLoad.setEnabled(False)
         self.actionRun.setEnabled(True)
+        self.actionPause.setEnabled(True)
         self.actionStep.setEnabled(True)
         self.actionStop.setEnabled(True)
         editor = self.asmEdit
@@ -186,6 +190,7 @@ class MainWindow(object):
     def runAction(self):
         self.actionRun.setEnabled(False)
         self.actionStep.setEnabled(False)
+        self.actionPause.setEnabled(True)
 
         while not self.cpu.check_done():
             self.cpu.iterate(debug=False)
@@ -201,6 +206,9 @@ class MainWindow(object):
         else:
             self.cpu.print_end_state()
             self.stopAction()
+
+    def pauseAction(self):
+        return
 
     def stopAndWait(self):
         # Stop correctly
@@ -233,6 +241,7 @@ class MainWindow(object):
         # Enable/Disable actions
         self.actionLoad.setEnabled(True)
         self.actionRun.setEnabled(False)
+        self.actionPause.setEnabled(False)
         self.actionStep.setEnabled(False)
         self.actionStop.setEnabled(False)
         # Re-enable editor

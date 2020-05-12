@@ -258,6 +258,7 @@
    </attribute>
    <addaction name="actionLoad"/>
    <addaction name="actionRun"/>
+   <addaction name="actionPause"/>
    <addaction name="actionStep"/>
    <addaction name="actionMicrostep "/>
    <addaction name="actionStop"/>
@@ -430,7 +431,7 @@
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>St&amp;op</string>
+    <string>&amp;Stop</string>
    </property>
    <property name="toolTip">
     <string>Stop the computer execution</string>
@@ -439,7 +440,7 @@
     <string>Stop program execution</string>
    </property>
    <property name="shortcut">
-    <string>F10, F10</string>
+    <string>F10</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -460,6 +461,33 @@
    </property>
    <property name="statusTip">
     <string>About Qt</string>
+   </property>
+  </action>
+  <action name="actionPause">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="process-suspend">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Pause</string>
+   </property>
+   <property name="iconText">
+    <string>Pause</string>
+   </property>
+   <property name="toolTip">
+    <string>Pause</string>
+   </property>
+   <property name="statusTip">
+    <string/>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>false</bool>
    </property>
   </action>
  </widget>
