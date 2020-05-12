@@ -208,19 +208,19 @@ class MainWindow(object):
             self.stopAction()
 
     def pauseAction(self):
-        return
-
-    def stopAndWait(self):
-        # Stop correctly
         self.cpu.EU.interrupt = True
-        
-        return
-
-    def stopAction(self):
-        self.stopAndWait()
         self.actionRun.setEnabled(True)
         self.actionStep.setEnabled(True)
-        self.actionStep.setEnabled(True)
+
+    # def stopAndWait(self):
+    #     # Stop correctly
+    #     self.cpu.EU.interrupt = True
+        
+    #     return
+
+    def stopAction(self):
+        self.pauseAction()
+        self.restoreEditor()
 
     def openAction(self):
         self.stopAction()
