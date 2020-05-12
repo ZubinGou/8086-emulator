@@ -1,7 +1,7 @@
 ;program to subtract two 8b numbers
 NAME Arithmetic
 TITLE sub_8b
-
+; Test Passed
 assume cs:code,ds:data
 data segment
     num1 db ?

@@ -1,7 +1,7 @@
 ;ALP to find the Sum and average of unsigned integer.
 NAME Comprehensive
 TITLE sum_average_unsigned
-
+;test passed
 
 ASSUME CS:CODE,DS:DATA
 
@@ -38,6 +38,7 @@ QUIT:  MOV SUM,AX
        MOV SUM+2,DX
        DIV N
        MOV AVG,AX
+       OUT 0,AX
        MOV AH,4CH
        INT 21H  
        

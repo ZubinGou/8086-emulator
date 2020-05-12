@@ -7,7 +7,7 @@
 ;BL is made to run x number of times, where x is the given number.
 NAME Comprehensive
 TITLE given_number_prime
-
+;text passed
 ; Declaration Part
 ASSUME CS:CODE,DS:DATA
 
