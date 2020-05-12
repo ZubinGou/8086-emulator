@@ -220,6 +220,7 @@ class MainWindow(object):
         self.stopAndWait()
         self.actionRun.setEnabled(True)
         self.actionStep.setEnabled(True)
+        self.actionStep.setEnabled(True)
 
     def openAction(self):
         self.stopAction()
