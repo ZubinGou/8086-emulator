@@ -1,6 +1,6 @@
 NAME Arithmetic
 TITLE multiply_2_32b
-
+; Test Passed
 assume cs:code, ds:data
 
 data segment; data segment starts

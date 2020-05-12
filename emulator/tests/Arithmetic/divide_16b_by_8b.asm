@@ -1,6 +1,6 @@
 NAME Arithmetic
 TITLE divide_16b_by_8b
-
+; Test Passed
 assume cs:code,ds:data
 
 data segment
