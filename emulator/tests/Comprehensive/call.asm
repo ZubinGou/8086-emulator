@@ -15,7 +15,7 @@ START:
     mov ax,0
     call s
     inc ax
-    mov ax,0c40h
+    mov ax,4c00h
     int 21h
 s:  inc ax
     ret
