@@ -193,7 +193,7 @@ class MainWindow(object):
         while not self.cpu.check_done():
             self.cpu.iterate(debug=False)
             refresh.emit()
-            time.sleep(0.5)
+            time.sleep(0.3)
 
     def runAction(self):
         self.actionRun.setEnabled(False)
