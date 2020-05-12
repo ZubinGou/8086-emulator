@@ -3,7 +3,7 @@ import os
 import time
 
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QThread, QTimer
+from PyQt5.QtCore import QThread, QTimer, pyqtSignal, QObject
 from PyQt5 import uic
 
 from ui.codeeditor import CodeEditor, AssemblyHighlighter
@@ -50,7 +50,10 @@ class MainWindow(object):
         self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.assembler, self.memory, self.console)
         self.EU = execution_unit.execution_unit(self.BIU, self.console)
         self.cpu = CPU(self.BIU, self.EU, self.console)
+        
+        
         self.emitter = Emitter(self.emitStart)
+        self.emitter.refresh.connect(self.refreshModels)
         # qApp.lastWindowClosed.connect(self.stopAndWait)
         self.setupEditorAndDiagram()
         self.setupSplitters()
@@ -185,18 +188,18 @@ class MainWindow(object):
         self.console.appendPlainText("Initial IP: " + hex(self.BIU.reg['IP']))
         self.console.appendPlainText("CPU initialized successfully.\n")
 
-    def emitStart(self):
+    def emitStart(self, refresh):
         self.cpu.EU.interrupt = False
         while not self.cpu.check_done():
             self.cpu.iterate(debug=False)
+            refresh.emit()
             time.sleep(0.5)
-
 
     def runAction(self):
         self.actionRun.setEnabled(False)
         self.actionStep.setEnabled(False)        
         self.emitter.start()
-
+        self.refreshModels()
 
     def nextInstruction(self):
         self.cpu.EU.interrupt = False
@@ -258,9 +261,15 @@ class MainWindow(object):
         self.gui.show()
 
 class Emitter(QThread):
+    refresh = pyqtSignal()
+
     def __init__(self, fn):
         super(Emitter, self).__init__()
         self.fn = fn
 
     def run(self):
-        self.fn()
+        self.fn(self.refresh)
+
+class Refresher(QObject):
+    def __init__(self):
+        QObject.__init__(self)
