@@ -30,7 +30,7 @@ class CodeEditor(QPlainTextEdit):
     def lineNumberAreaPaintEvent(self, event):
         painter = QPainter(self.lineNumberArea)
         painter.fillRect(event.rect(), self.palette().color(QPalette.Window))
-        painter.setPen(Qt.black)
+        painter.setPen(QPen(QColor("#808080"), 12))
 
         block = self.firstVisibleBlock()
         blockNumber = block.blockNumber() + 1
@@ -131,7 +131,7 @@ class CodeEditor(QPlainTextEdit):
 
 
 class LineNumberArea(QWidget):
-    RIGHT_MARGIN = 3
+    RIGHT_MARGIN = 6
     codeEditor = None
 
     def __init__(self, editor):
@@ -200,7 +200,7 @@ class AssemblyHighlighter(QSyntaxHighlighter):
         # comment
         rule = HighlightingRule()
         rule.pattern = QRegExp(r';[^\n]*')
-        rule.format = format([80, 80, 80])
+        rule.format = format([85, 85, 85])
         self.highlightingRules.append(rule)
 
     def highlightBlock(self, text):

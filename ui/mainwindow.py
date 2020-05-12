@@ -8,7 +8,6 @@ from PyQt5 import uic
 
 from ui.codeeditor import CodeEditor, AssemblyHighlighter
 from ui.models import (RegistersModel, RegistersModel2, MemoryModel, MemoryModel2, MemoryModel3)
-from ui import syntax_pars
 
 import re
 import sys
