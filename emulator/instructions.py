@@ -14,3 +14,5 @@ miscellaneous_ins = ['NOP', 'INT', 'IRET', 'XLAT', 'HLT', 'ESC', 'INTO', 'LOCK',
 conditional_jump_ins = [ 'JA', 'JAE', 'JB', 'JBE', 'JC', 'JCE', 'JCXZ', 'JE', 'JG', 'JGE' 'JL', 'JLE', 'JNA', 'JNAE', 'JNB', 'JNBE', 'JNC', 'JNE', 'JNG', 'JNE', 'JNG', 'JNGE', 'JNL', 'JNLE', 'JNO', 'JNP', 'JNS', 'JNZ', 'JO', 'JP', 'JPE', 'JPO', 'JS', 'JZ']
 all_ins = data_transfer_ins + arithmetic_ins + logical_ins + rotate_shift_ins + transfer_control_ins + \
           string_manipulation_ins + flag_manipulation_ins + stack_related_ins + input_output_ins + miscellaneous_ins
+
+registers = ['AX', 'BX', 'CX', 'DX', 'AH', 'AL', 'BH', 'BL', 'CH', 'CL', 'DH', 'DL', 'CS', 'DS', 'SS', 'ES', 'SP', 'BP', 'SI', 'DI']

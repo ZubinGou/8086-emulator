@@ -6,8 +6,9 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread
 from PyQt5 import uic
 
-from ui.codeeditor import CodeEditor
+from ui.codeeditor import CodeEditor, AssemblyHighlighter
 from ui.models import (RegistersModel, RegistersModel2, MemoryModel, MemoryModel2, MemoryModel3)
+from ui import syntax_pars
 
 import re
 import sys
@@ -58,7 +59,14 @@ class MainWindow(object):
     def setupEditorAndDiagram(self):
         # Assembly editor get focus on start
         self.asmEdit = self.gui.findChild(CodeEditor, "asmEdit")
+        # self.asmEdit = QPlainTextEdit()
         self.asmEdit.setFocus()
+        self.asmEdit.setStyleSheet("""QPlainTextEdit{
+            font-family:'Consolas'; 
+            color: #ccc; 
+            background-color: #2b2b2b;}""")
+        self.highlight = AssemblyHighlighter(self.asmEdit.document())
+
 
     def setupSplitters(self):
         mainsplitter = self.gui.findChild(QSplitter, "mainsplitter")
