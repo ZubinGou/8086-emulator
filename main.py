@@ -22,11 +22,9 @@ SEG_INIT = {
 def main():
     help = '''
     Usage:
-    python main.py tests/fibonacci.asm
-    python main.py tests/sub_mul_div.asm nodebug
-    注：fibonacci.asm 无限循环求斐波那契数
-        sub_mul_div.asm 加减乘除测试
-        jmp.asm 跳转命令测试
+    python main.py ./emulator/tests/Requirement/bubble_sort.asm
+    python main.py ./emulator/tests/Requirement/bubble_sort.asm nodebug
+    注：tests文件夹内含有大量测试用例
     可以参考 README.md 中支持的汇编语言自己编写程序来运行。
     '''
 
