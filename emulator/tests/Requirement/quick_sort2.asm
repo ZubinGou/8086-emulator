@@ -12,14 +12,14 @@ data ends
 
 code segment
 start:
-	mov ax,10
-	mov cnt,ax
+	mov al,10
+	mov cnt,al
 	;call scanf
 	;初始化l,r
-	mov ax,0
-	mov l,ax;
-	mov ax,9
-	mov r,ax
+	mov al,0
+	mov l,al;
+	mov al,9
+	mov r,al
 	;调用快排
 	call quicksort
 	call print
@@ -33,28 +33,28 @@ swap:
 	ret
  
 quicksort:
-	mov ax,l
-	cmp ax,r
+	mov al,l
+	cmp al,r
 	jg over
 	xor si,si;
 	xor bx,bx;
 	mov si,l;i
 	mov bx,r;j
-	mov ax,dat[si] 
+	mov al,dat[si] 
 	sort_again:
 	cmp bx,si;				while (i!=j)
 	je over_loop;
 		loop_j_again:
 			cmp si,bx; 			while(i<j)
 			jge over_loop
-			cmp ax,dat[bx]; 	while (a[j]>=a[l])
+			cmp al,dat[bx]; 	while (a[j]>=a[l])
 			jg loop_i_again
 			add bx ,-1			;		j--
 			jmp loop_j_again;	
 		loop_i_again:
 			cmp si,bx; 			while (i<j)
 			jge over_loop
-			cmp ax,dat[si]; 	while (a[l]>=a[i])
+			cmp al,dat[si]; 	while (a[l]>=a[i])
 			jl compare;
 			add si,1;					i++
 			jmp loop_i_again;
@@ -85,12 +85,11 @@ print:
 	mov cx,cnt
 	xor si,si
     print_again:
-			mov ax,dat[si]
-			out 0,ax
+			mov al,dat[si]
+			out 0,al
 			inc si;
 			loop print_again
-	MOV AH,4CH
-    INT 21H
+	ret
 
 code ends
 end start
