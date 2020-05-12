@@ -3,7 +3,7 @@ import os
 import time
 
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, QTimer
 from PyQt5 import uic
 
 from ui.codeeditor import CodeEditor, AssemblyHighlighter
@@ -50,8 +50,8 @@ class MainWindow(object):
         self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.assembler, self.memory, self.console)
         self.EU = execution_unit.execution_unit(self.BIU, self.console)
         self.cpu = CPU(self.BIU, self.EU, self.console)
-
-        qApp.lastWindowClosed.connect(self.stopAndWait)
+        self.emitter = Emitter(self.emitStart)
+        # qApp.lastWindowClosed.connect(self.stopAndWait)
         self.setupEditorAndDiagram()
         self.setupSplitters()
         self.setupModels()
@@ -181,19 +181,21 @@ class MainWindow(object):
         self.console.appendPlainText("Initial IP: " + hex(self.BIU.reg['IP']))
         self.console.appendPlainText("CPU initialized successfully.\n")
 
+    def emitStart(self):
+        self.cpu.EU.interrupt = False
+        while not self.cpu.check_done():
+            self.cpu.iterate(debug=False)
+            time.sleep(0.5)
+
 
     def runAction(self):
         self.actionRun.setEnabled(False)
-        self.actionStep.setEnabled(False)
+        self.actionStep.setEnabled(False)        
+        self.emitter.start()
 
-        while not self.cpu.check_done():
-            self.cpu.iterate(debug=False)
-            self.refreshModels()
-            # time.sleep(0.3)
-        self.cpu.print_end_state()
-        self.stopAction()
 
     def nextInstruction(self):
+        self.cpu.EU.interrupt = False
         if not self.cpu.check_done():
             self.cpu.iterate(debug=False)
             self.refreshModels()
@@ -203,14 +205,14 @@ class MainWindow(object):
 
     def stopAndWait(self):
         # Stop correctly
-        # self.cpu.stop()
-        # if self.emitter is not None:
-        #     self.emitter.wait()
+        self.cpu.EU.interrupt = True
+        
         return
 
     def stopAction(self):
         self.stopAndWait()
-        self.restoreEditor()
+        self.actionRun.setEnabled(True)
+        self.actionStep.setEnabled(True)
 
     def openAction(self):
         self.stopAction()
@@ -240,10 +242,16 @@ class MainWindow(object):
         self.refreshModels()
 
     def refreshModels(self):
-        self.ip = self.BIU.reg['IP']
-        self.sp = self.EU.reg['SP']
         self.setupModels()
         self.setupTrees()
 
     def show(self):
         self.gui.show()
+
+class Emitter(QThread):
+    def __init__(self, fn):
+        super(Emitter, self).__init__()
+        self.fn = fn
+
+    def run(self):
+        self.fn()

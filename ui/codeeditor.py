@@ -207,7 +207,7 @@ class AssemblyHighlighter(QSyntaxHighlighter):
 
         # numbers
         rule = HighlightingRule()
-        rule.pattern = QRegExp(r'\b[+-]?(\d[dD]?)|(0[xX][0-9A-Fa-f]+)|([0-9A-Fa-f]+[hH]+)|([01]+[bB]+)\b')
+        rule.pattern = QRegExp(r'[+-]?(\d)|(0[xX][0-9A-Fa-f]+)|([0-9A-Fa-f]+[hH]+)|([01]+[bB]+)\b')
         rule.format = format([0xb8, 0xbb, 0x26], 'bold')
         self.highlightingRules.append(rule)
 
