@@ -66,7 +66,7 @@ class MainWindow(object):
         self.asmEdit.setStyleSheet("""QPlainTextEdit{
             font-family:'Consolas'; 
             color: #ccc; 
-            background-color: #2b2b2b;}""")
+            background-color: #282828;}""")
         self.highlight = AssemblyHighlighter(self.asmEdit.document())
 
 

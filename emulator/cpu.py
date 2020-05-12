@@ -78,6 +78,8 @@ class CPU(object):
     
     def check_done(self):
         # 检查是否无指令，结束cpu运行
+        if self.EU.interrupt:
+            return True
         return  self.BIU.instruction_queue.empty() and \
                 not self.BIU.remain_instruction()
 

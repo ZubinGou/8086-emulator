@@ -3,7 +3,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-from emulator.instructions import all_ins, registers
+from emulator.instructions import *
 
 # QPlainTextEdit
 
@@ -107,7 +107,7 @@ class CodeEditor(QPlainTextEdit):
             self.highlightCurrentLine()
             self.setPalette(self.defaultPalette)
 
-    def highlightLine(self, lineNo, lineColor=QColor("#C6DBAE")):
+    def highlightLine(self, lineNo, lineColor=QColor("#3C3836")):
         if lineNo > 0:
             block = self.document().findBlockByLineNumber(lineNo-1)
             cursor = self.textCursor()
@@ -187,21 +187,36 @@ class AssemblyHighlighter(QSyntaxHighlighter):
         for pattern in registerPatterns:
             rule = HighlightingRule()
             rule.pattern = QRegExp(r'\b%s\b' % pattern, Qt.CaseInsensitive)
-            rule.format = format([133, 153, 31], 'bold')
+            rule.format = format([0xfa, 0xbd, 0x2f], 'bold')
             self.highlightingRules.append(rule)
         
-        pseudoinPatterns = ['DB', 'DW', 'DD', 'DQ', 'DUP', 'PTR', 'LABEL', 'ALIGN', 'ORG', 'END', 'ASSUME', 'SEGMENT', 'NAME', 'TITLE', 'ENDS', 'SHORT', 'NEAR', 'FAR', 'SEG', 'OFFSET', 'TYPE']
+        pseudoinPatterns = pseudo_ins
         for pattern in pseudoinPatterns:
             rule = HighlightingRule()
             rule.pattern = QRegExp(r'\b%s\b' % pattern, Qt.CaseInsensitive)
             rule.format = format([112, 194, 201], 'bold')
             self.highlightingRules.append(rule)
 
+        # braces
+        bracesPatterns = ['\{', '\}', '\(', '\)', '\[', '\]',]
+        for pattern in bracesPatterns:
+            rule = HighlightingRule()
+            rule.pattern = QRegExp(r'%s' % pattern, Qt.CaseInsensitive)
+            rule.format = format([0xd5, 0xc4, 0xa1], 'bold')
+            self.highlightingRules.append(rule)
+
+        # numbers
+        rule = HighlightingRule()
+        rule.pattern = QRegExp(r'\b[+-]?(\d[dD]?)|(0[xX][0-9A-Fa-f]+)|([0-9A-Fa-f]+[hH]+)|([01]+[bB]+)\b')
+        rule.format = format([0xb8, 0xbb, 0x26], 'bold')
+        self.highlightingRules.append(rule)
+
         # comment
         rule = HighlightingRule()
         rule.pattern = QRegExp(r';[^\n]*')
-        rule.format = format([85, 85, 85])
+        rule.format = format([85, 85, 85], 'bold')
         self.highlightingRules.append(rule)
+
 
     def highlightBlock(self, text):
         for rule in self.highlightingRules:
