@@ -7,9 +7,9 @@ Intel 8086仿真模拟器。
 - 支持除中断以外几乎所有8086指令
 - 伪指令包含MASM5.0核心指令，采用Small存储模型
 - 支持王爽《汇编语言》前11章所有程序，暂不支持中断
-- 支持8086所有寄存器，包括高低字节
+- 支持段寄存器、标志寄存器以及栈、指令队列等特性
 - BIU和EU组成2级流水线
-- 图形界面GUI
+- 图形界面
 
 ## Usage
 示例汇编代码见`tests`文件夹，也可根据伪指令文档自行编写程序，运行示例如下：
@@ -30,14 +30,22 @@ $  python main.py ./emulator/tests/Requirement/bubble_sort.asm nodebug
 | R    | 显示所有寄存器内容，包括标志寄存器。 |                   r                  |
 
 ### GUI
-如图是示例汇编程序Bubble Sort运行结果截图：
-![](https://codimd.s3.shivering-isles.com/demo/uploads/upload_e34fe73f8cda7a4fb7af1e3c7489ff1b.png)
+- 基于PyQt实现图形界面，采用多线程支持运行、单步执行、暂停、停止
+- 显示所有寄存器和内存段内容
+- CS:IP代码段指针与SS:SP栈指针位置提示
+- 汇编代码编辑器、着色高亮
+```sh
+$ python mainUI.py
+```
+
+示例汇编程序Bubble Sort运行结果截图：
+
+![](image/bubble_sort.png)
 
 
 ## 数据通路
 x86构架的开端Intel 8086所有的内部寄存器、内部及外部数据总线都是16位宽，运算器、寄存器均为16位，是完全的16位微处理器，采用小端模式。20位外部地址总线，物理定址空间为1MB。
-![](https://codimd.s3.shivering-isles.com/demo/uploads/upload_ad179a4910b84dbd2cd517887c5d2d7c.jpg)
-
+![](image/data_path.jpg)
 
 ## 指令系统
 - 使用最常见的Intel x86指令集。
@@ -96,8 +104,7 @@ Intel X86指令属于复杂计算机指令集(CISC)，具有如下特点：
 
 8086CPU指令系统，它采用1~6个指令字节的变字长，包括操作码(第一字节)、寻址方式(第二字节)和操作数(第三到第六字节)三部分组成，指令格式如下：
 
-![](https://codimd.s3.shivering-isles.com/demo/uploads/upload_dfa9c81212cc75f56d8e8adebdc13fa3.png)
-
+![](image/ins_format.png)
 
 #### 第一字节(BYTE 1)
 - 指令定义了处理器要执行的操作。操作码通常位于第一字节，某些指令的操作码会扩展到第二字节（即ModR/M字节）的REG域，故有时候REG域也被称为REG/Opcode域，用来指出该域的两种用途。
@@ -112,13 +119,16 @@ Intel X86指令属于复杂计算机指令集(CISC)，具有如下特点：
 #### 第二字节(BYTE 2)
 - 第二字节是ModR/M字节，基本用途是指示指令的两个操作数，以及该字节之后是否还有其他字节（位移量字节和立即数字节）。由于主要用于用于操作数寻址，所以又称为“寻址字节”。
 - Mod域(BYTE2[7:6])有2个比特位，用于指示操作数的来源。
-    | Mod编码(二进制)| 释义 |
-    | -------- | -------- | -------- |
-    | 00     | 存储器模式，无位移量字节；如果R/M=110，则有一个16位的位移量     |
-    | 01     | 存储器模式，8位位移量字节（1个字节）     |
-    | 10     | 存储器模式，16位位移量字节(2个字节)存储器模式，16位位移量字节(2个字节)     |
-    | 11     | 寄存器模式（无位移量）     |
+
+  | Mod编码(二进制)| 释义 |
+  | -------- | -------- | -------- |
+  | 00     | 存储器模式，无位移量字节；如果R/M=110，则有一个16位的位移量     |
+  | 01     | 存储器模式，8位位移量字节（1个字节）     |
+  | 10     | 存储器模式，16位位移量字节(2个字节)存储器模式，16位位移量字节(2个字节)     |
+  | 11     | 寄存器模式（无位移量）     |
+
 - REG域(BYTE2[5:3]，即寄存器域)用来指示一个寄存器，可以是源操作数，也可以是目的操作数，由第一字节的D标志位指示。具体编码格式如下：
+
     | REG | W=0 | W=1 |
     |-----|-----|-----|
     | 000 | AL  | AX  |
@@ -129,27 +139,13 @@ Intel X86指令属于复杂计算机指令集(CISC)，具有如下特点：
     | 101 | CH  | BP  |
     | 110 | DH  | SI  |
     | 111 | BH  | DI  |
+
 - R/M域（BYTE2[2:0]，即寄存器/存储器域），用来指示另一个操作数，可以在存储器中，也可以在寄存器中。R/M域编码含义依赖于MOD域的设定。如果MOD=11（寄存器到寄存器模式），则R/M域标识第二个寄存器操作数。如果MOD是存储器模式（即00，01，10），则R/M指示如何如何计算存储器操作数的有效地址。
 
 ### 8086指令集编码
 根据8086指令格式的形式，我们通过一个[编码矩阵](http://www.mlsite.net/8086/)的形式来集中体现操作码（第一字节码）的对应编码。后续的第二~六字节因为涉及到不同的寻址方式、寄存器/存储器的选取以及立即数的值，这些都会导致每一条指令编码的不同，所以在设计指令格式时我们并未对后面字节进行详细编码，而是用抽象形式来体现后续字节。
 
 #### Opcode Map (Part 1)
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;border-color:#9ABAD9;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#9ABAD9;color:#444;background-color:#EBF5FF;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#9ABAD9;color:#fff;background-color:#409cff;}
-.tg .tg-o1j9{background-color:#409cff;border-color:#ffffff;color:rgb(51, 51, 51);font-weight:bold;text-align:center;
-  vertical-align:top}
-.tg .tg-b786{background-color:rgb(238, 238, 238);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-d5a7{background-color:#ffffff;border-color:#ffffff;color:#333333;text-align:center;vertical-align:top}
-.tg .tg-p8s6{background-color:#409cff;border-color:#ffffff;color:#333333;font-weight:bold;text-align:center;vertical-align:top}
-.tg .tg-8qro{background-color:rgb(221, 221, 221);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-9d52{background-color:rgb(221, 85, 85);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-o6ju{background-color:rgb(238, 102, 102);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-l9cj{background-color:rgb(221, 221, 221);border-color:#ffffff;color:#333333;text-align:center;vertical-align:top}
-.tg .tg-spmh{background-color:rgb(238, 238, 238);border-color:#ffffff;color:#333333;text-align:center;vertical-align:top}
-</style>
 <table class="tg">
   <tr>
     <th class="tg-d5a7"></th>
@@ -341,23 +337,6 @@ Intel X86指令属于复杂计算机指令集(CISC)，具有如下特点：
 </table>
 
 #### Opcode Map (Part 2)
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;border-color:#9ABAD9;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#9ABAD9;color:#444;background-color:#EBF5FF;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#9ABAD9;color:#fff;background-color:#409cff;}
-.tg .tg-o1j9{background-color:#409cff;border-color:#ffffff;color:rgb(51, 51, 51);font-weight:bold;text-align:center;
-  vertical-align:top}
-.tg .tg-b786{background-color:rgb(238, 238, 238);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-p8s6{background-color:#409cff;border-color:#ffffff;color:#333333;font-weight:bold;text-align:center;vertical-align:top}
-.tg .tg-xqy4{background-color:#409cff;border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-2em6{background-color:#409cff;border-color:#ffffff;color:rgb(51, 51, 51);font-weight:bold;text-align:right;
-  vertical-align:top}
-.tg .tg-8qro{background-color:rgb(221, 221, 221);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-o6ju{background-color:rgb(238, 102, 102);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-9d52{background-color:rgb(221, 85, 85);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-l9cj{background-color:rgb(221, 221, 221);border-color:#ffffff;color:#333333;text-align:center;vertical-align:top}
-.tg .tg-spmh{background-color:rgb(238, 238, 238);border-color:#ffffff;color:#333333;text-align:center;vertical-align:top}
-</style>
 <table class="tg">
   <tr>
     <th class="tg-xqy4"></th>
@@ -553,21 +532,6 @@ Intel X86指令属于复杂计算机指令集(CISC)，具有如下特点：
 (2)在单元中每一个指令名称的下方都标有该指令所对应的寄存器和相应字长，部分指令还标有寻址方式。具体的寄存器的分类介绍请详见文档寄存器部分*
 
 #### Opcode Map (Opcode Extensions)
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;border-color:#9ABAD9;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#9ABAD9;color:#444;background-color:#EBF5FF;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#9ABAD9;color:#fff;background-color:#409cff;}
-.tg .tg-o1j9{background-color:#409cff;border-color:#ffffff;color:rgb(51, 51, 51);font-weight:bold;text-align:center;
-  vertical-align:top}
-.tg .tg-b786{background-color:rgb(238, 238, 238);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-p8s6{background-color:#409cff;border-color:#ffffff;color:#333333;font-weight:bold;text-align:center;vertical-align:top}
-.tg .tg-xqy4{background-color:#409cff;border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-2em6{background-color:#409cff;border-color:#ffffff;color:rgb(51, 51, 51);font-weight:bold;text-align:right;
-  vertical-align:top}
-.tg .tg-8qro{background-color:rgb(221, 221, 221);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-9d52{background-color:rgb(221, 85, 85);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-.tg .tg-o6ju{background-color:rgb(238, 102, 102);border-color:#ffffff;color:rgb(51, 51, 51);text-align:center;vertical-align:top}
-</style>
 <table class="tg">
   <tr>
     <th class="tg-xqy4">0</th>
@@ -1086,9 +1050,7 @@ int 21H
 ### 概述
 寄存器模拟8086CPU，总共14个寄存器都是16位的。无符号数字可以存储范围$0\sim 2^{16}-1=0\sim 65535$，直接作为指针指令寄存器用来寻址时候，寻址范围是$2^{16}=64KB$，16进制表示范围为$0x0000\sim 0xffff$。
 
-<!-- ![](https://raw.githubusercontent.com/ZubinGou/8086-emulator/master/image/8086_register.jpg) -->
-
-![](https://codimd.s3.shivering-isles.com/demo/uploads/upload_2df78b4ba8da3a90f8ca676b553f6935.png)
+![](image/regs.png)
 
 
 
@@ -1138,7 +1100,7 @@ The 1Mb of accessible memory in the 8086 ranges from 00000 to FFFFF.
 - 数组每个位置存放数据或者指令为1字节（Byte），假设所有指令均为1字节，存放在数组一个单元中。
     - 20条外部地址线可寻址这1MB空间，采取了段寻址方式。地址加法器在BIU中：
 
-![地址计算流程图](https://codimd.s3.shivering-isles.com/demo/uploads/upload_1e071cf7d5570d0d343c2128542bf333.png)
+![地址计算流程图](image/addr_adder.png))
 
 ### Cache Memory
 - 值得注意的是，8086不支持 L1 或者 L2 cache memory。但为了更真实地模拟cpu运行，我们将cpu中的一级缓存、二级缓存等抽象为一个cpu类下的指令缓存器：cache memory。
@@ -1147,7 +1109,7 @@ The 1Mb of accessible memory in the 8086 ranges from 00000 to FFFFF.
 
 ## 流水线和时序产生器（时钟，Clock）
 ### 8086流水线模拟
-![](https://raw.githubusercontent.com/ZubinGou/8086-emulator/master/image/8086_pipeline.png)
+![](image/pipeline.png))
 
 - 8086系统的时钟频率为4.77MHz~10MHz，每个时钟周期约为200ns。我们通过sleep函数降低时钟频率，每个周期均sleep一定时间以观察cpu运行细节。
 - 8086处理器的流水线超级简单，只有取指和执行两级。BIU(Bus Interface Unit)单元负责取指，EU(Execution Unit)单元负责指令译码。故而划分取指周期T1和执行周期T2：
@@ -1170,13 +1132,19 @@ The 1Mb of accessible memory in the 8086 ranges from 00000 to FFFFF.
   - Pipelining：Fetching the next instruction (by BIU from CS) while executing the current instruction 。
   - Gets flushed whenever a branch instruction occurs.
 ### Segment Registers
-![](https://codimd.s3.shivering-isles.com/demo/uploads/upload_c2bc420a2e23cee26e1f8bd1e3a71721.png)
+![](image/segment.png)
+
 Rules of Segmentation Segmentation process follows some rules as follows:
 - The starting address of a segment should be such that it can be evenly divided by 16.
 - Minimum size of a segment can be 16 bytes and the maximum can be 64 kB.
 - 我们假设4个段长度均为最大长度64kB（10000H），4个段默认分布如上图。存储器对应关系如下：
 
-<table style="border-collapse:collapse;border-color:#9ABAD9;border-spacing:0" class="tg"><thead><tr><th style="background-color:#409cff;border-color:#000000;border-style:solid;border-width:1px;color:#fff;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">Segment</th><th style="background-color:#409cff;border-color:#000000;border-style:solid;border-width:1px;color:#fff;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">Offset Registers</th><th style="background-color:#409cff;border-color:#000000;border-style:solid;border-width:1px;color:#fff;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">Function</th></tr></thead><tbody><tr><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">CS</td><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">IP</td><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">Adress of next instructions</td></tr><tr><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">DS</td><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">BX, DI, SI</td><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">Adress of data</td></tr><tr><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">SS</td><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">SP, BP</td><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">Adress in the stack</td></tr><tr><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">ES</td><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">BX, DI, SI</td><td style="background-color:#EBF5FF;border-color:#000000;border-style:solid;border-width:1px;color:#444;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;text-align:center;vertical-align:top;word-break:normal">Adress of data for string operations</td></tr></tbody></table>
+| Segment | Offset Registers | Function                             |
+|---------|------------------|--------------------------------------|
+| CS      | IP               | Adress of next instructions          |
+| DS      | BX, DI, SI       | Adress of data                       |
+| SS      | SP, BP           | Adress in the stack                  |
+| ES      | BX, DI, SI       | Adress of data for string operations |
 
 ### Instruction Pointer (IP)
 - It is a 16 bit register. It holds offset of the next instructions in the Code Segment.
@@ -1222,8 +1190,9 @@ The EU fetches an opcode from the queue into the instruction register.
   - direction flag(DF)
 
 ## Future Works
-- 流水线优化
 - 中断
+- 流水线优化
+- GUI稳定性改进
 
 ## 参考资料
 - 《Intel Software Developer’s Manual》
