@@ -33,7 +33,7 @@ Intel 8086仿真模拟器。
 $ python mainUI.py
 ```
 #### 界面说明
-![](iamge/mainUI.png)
+![](image/mainUI.png)
 
 - 命令栏：
     - New：创建空白汇编文件
