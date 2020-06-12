@@ -1,46 +1,399 @@
+![](image/logo.png)
+
 # 8086-emulator
 ![](https://img.shields.io/github/license/ZubinGou/8086-emulator)   ![](https://img.shields.io/github/repo-size/ZubinGou/8086-emulator)
 
 Intel 8086仿真模拟器。
+
+## v4.0更新内容
+- 中断
+- GUI优化
+- 断点运行
+- 多种打印模式
+- DOS系统调用（获取系统时间、打印字符串等）
+
 ## Features
-- 输入为8086汇编程序
-- 支持除中断以外几乎所有8086指令
+- 输入为8086汇编程序，支持几乎所有8086指令
 - 伪指令包含MASM5.0核心指令，采用Small存储模型
-- 支持王爽《汇编语言》前11章所有程序，暂不支持中断
-- 支持段寄存器、标志寄存器以及栈、指令队列等特性
+- 支持中断、单步、暂停、断点、debug、交互式执行汇编
+- 支持王爽《汇编语言》前11章所有程序
+- 支持8086所有寄存器，包括高低字节
+- 支持段寄存器、栈、指令队列等特性
 - BIU和EU组成2级流水线
-- 图形界面
+- 图形界面GUI、汇编代码高亮和编辑
 
 ## Usage
-示例汇编代码见`tests`文件夹，也可根据伪指令文档自行编写程序，运行示例如下：
-```sh
-$ python main.py ./emulator/tests/Requirement/bubble_sort.asm
+- 本模拟系统有两种运行模式：CLI命令行模式和GUI图形界面模式，其中CLI支持输入和debug。
+- 运行输入为8086汇编代码，目前已经编写了近50条各种类型的汇编代码，在程序根目录`tests`文件夹中，也可以在网上查找汇编代码，稍加修改即可运行。
+
+### GUI运行说明
+- 支持代码编辑、运行、单步执行、暂停、停止等
+- 双击程序根目录下`mainUI.exe`即可运行，也可以执行以下代码运行：
+```shell
+$ python mainUI.py
 ```
-### Nodebug Mode
+#### 界面说明
+![](iamge/mainUI.png)
+
+- 命令栏：
+    - New：创建空白汇编文件
+    - Open：打开汇编汇编
+    - Save：将当前编辑的汇编文件保存
+- 执行控制栏：
+    - Load：加载当前程序到CPU，每次执行汇编前都需要Load
+    - Run：顺序执行汇编代码，直到断点、中断或者结束
+    - Pause：暂停执行，在Run的时候异步中断，再按Run或Step可以继续执行
+    - Step：单步执行
+    - Stop：终止执行，CPU停机
+- 寄存器栏：最左边的寄存器栏，显示当前寄存器状态
+- 段内存栏：
+    - Stack Segment：显示栈空间内存，高亮SS：SP指针
+    - Code Segment：显示代码段内存，高亮CS：IP指针
+    - Data Segment：显示默认数据段内存
+- 编辑器：可以直接修改代码运行、保存等
+- Console：程序运行输出，暂不支持输入
+
+#### 运行方法
+1. 点击Load加载程序
+2. 点击Run（连续）或者Step（单步）运行程序
+3. 查看输出
+
+其他操作示例：
+- Run过程中可以点击Pause暂停，然后再Run或者Step
+- Open打开`tests`文件夹中的汇编文件，再次Load后运行
+- 修改汇编代码，Load后再运行
+- 随时按Stop使得CPU停机
+
+
+### CLI运行说明
+命令行交互CLI比GUI多的功能：
+- debug交互模式
+- 支持输入
+
+运行方法：在程序根目录命令行中执行：
 ```sh
-$  python main.py ./emulator/tests/Requirement/bubble_sort.asm nodebug
+$ python main.py ./tests/Requirement/bubble_sort.asm -n
 ```
-### Debug Mode(Default)
-可以中断使用模拟DOS调试工具[DEBUG](http://tinylab.org/assembly/fl/fl1.htm)，支持以下命令：
+#### 参数说明
+第一个参数为需要执行的汇编程序（在`tests`文件夹）
+后面有两个可选参数：
+- `--nodebug`：可简写为`-n`，关闭debug，持续运行直到断点或结束。示例：
+    ```shell
+    $ python main.py ./tests/Interrupt/show_date_time.asm -n
+    ```
+- `--interrupt`：可简写为`-i`，显示中断信息。示例：
+    ```shell
+    $ python main.py ./tests/Interrupt/int3_test.asm -n -i
+    ```
+
+#### Debug模式
+- 默认的debug模式，单步运行，每条指令执行结束打印cpu信息
+- 在单步暂停时，可以使用模拟DOS调试工具[DEBUG](http://tinylab.org/assembly/fl/fl1.htm)，支持以下命令：
 
 | 命令 | 功能                                 | 示例                                 |
 |------|--------------------------------------|--------------------------------------|
-| A    | 以交互式方式输入指令并执行           |           a<br>mov al,0xd8           |
+| A    | 以交互式方式输入汇编指令并执行           |           a<br>mov al,0xd8           |
 | D    | 以内存映象方式显示内存中的数据。     | D [地址] <br>D [起始地址] [目的地址] |
 | R    | 显示所有寄存器内容，包括标志寄存器。 |                   r                  |
 
-### GUI
-- 基于PyQt实现图形界面，采用多线程支持运行、单步执行、暂停、停止
-- 显示所有寄存器和内存段内容
-- CS:IP代码段指针与SS:SP栈指针位置提示
-- 汇编代码编辑器、着色高亮
-```sh
-$ python mainUI.py
+
+## 中断
+模拟8086采用的8259A中断控制器。
+![](image/interrupts.png)
+
+![](image/8259A.png)
+
+### 内中断（同步）Software Interrupts
+CPU内部产生的，不涉及外设的异常。我们提供的8086cpu主要内中断有上述虚线框中的4种，内中断不可屏蔽。
+
+中断过程：
+1. 取得中断类型码N
+2. pushf
+3. TF=0，IF=0
+4. push CS
+5. push IP
+6. (IP)=(N * 4),(CS)=(N * 4+2)
+
+中断返回iret：
+1. pop IP
+2. pop CS
+3. popf
+
+### 外中断（异步）Hardware Interrupts
+外中断由外设通过芯片针脚发送的信号触发，有两类：
+- NMI (Non Maskable Interrupt) – 不可屏蔽，上升沿有效，最高优先级中断，引发int 2中断。
+- INTR (Interrupt Request) – 由I/O端口触发，可屏蔽，IF=1时响应，高电平有效，可以引发任意type中断. 
+
+
+### 中断向量表 Interrupt Vector Table
+- 中断类型码8位，对应256个中断源。
+- 在8086PC机中，中断向量表指定放在内存地址0处。地址为`0000:0000`到`0000:03FF`，共1024个单元。
+- 一个表项占用两个字节，高地址放段地址，低地址放偏移地址
+- 为了简化，将处理程序从地址`1000：0000`开始放置，空间大小固定为`100h`。
+
+| TYPE     | 功能                                            | 地址      |   实现                                             |
+|----------|-------------------------------------------------|-----------|----------------------------------------------------|
+| 0H       | Divide Error                                    | 1000:0000 |   div和idiv指令执行时检查，结果是否溢出或者除数为0 |
+| 1H       | Single step execution for debugging of program. | 1000:0100 |  一条指令执行后检查TF标志                          |
+| 2H       | Non-Maskable Interrupt (NMI)                    | 1000:0200 | GUI中”PAUSE“暂停即用NMI实现                        |
+| 3H       | Break-point Interrupt                           | 1000:0300 |   执行int 3h或者int 时断点中断                     |
+| 4H       | Overflow Interrupt                              | 1000:0400 |   OF=1时调用 INTO 将中断，判断有符号运算的溢出     |
+| 5H-31H   |   系统备用中断                                  |           |                                                    |
+| 10H      | BIOS INT 10H                                    |           |                                                    |
+| 21H      | DOS INT 21H                                     |           |                                                    |
+| 32H-0FFH |   用户定义中断                                  |           |                                                    |
+
+### 中断例程 Interrupt Service Routine
+- ISR：一个供程序员调用的中断例程常常包括多个子程序，中断例程内部根据传递进来的参数决定执行哪一个子程序。
+- 中断处理程序功能：
+    1. 保存用到的寄存器
+    2. 处理中断
+    3. 恢复用到的寄存器
+    4. 用iret指令返回
+- 中断例程模版：
+```asm86=
+入口地址:PUSH AX     ;保护现场
+        PUSH BX
+         :
+        PUSH BP
+        CLI         ;开中断
+         :
+         :          ;中断服务
+         :
+        STI         ;关中断
+        POP BP      ;恢复现场
+         :
+        POP BX
+        POP AX
+        CLI         ;开中断
+        IRET        ;中断返回
+```
+#### DOS中断例程 INT 21H
+- MS-DOS API最初是86-DOS中的应用程序接口（API），并也被MS-DOS/PC-DOS及其他DOS兼容操作系统使用。大多数对DOS API的调用是使用中断21h（INT 21h）。在调用INT 21h时，在AH 寄存器中带有子函数号，其他寄存器中带有其他参数，从而调用各个DOS服务。DOS服务包括键盘输入、视频输入、磁盘文件访问、执行程序、内存分配及其他事务。
+- 已模拟实现的功能如下：
+
+| AH | 功能                | 调用参数                  | 返回参数                    |
+|----|---------------------|---------------------------|-----------------------------|
+| 00 | 程序终止(同INT 20H) | CS=程序段前缀             | 　                          |
+| 01 | 键盘输入并回显      | 　                        | AL=输入字符                 |
+| 02 | 显示输出            | DL=输出字符               | 　                          |
+| 09 | 显示字符串          | DS:DX=串地址<br>'$'结束字符串 |                             |
+| 2A | 取日期              | 　                        | CX=年 DH:DL=月:日    |
+| 2C | 取时间              | 　                        | CH:CL=时:分<br> DH:DL=秒:1/100秒 |
+| 35 | 取中断向量          | AL=中断类型               | ES:BX=中断向量              |
+| 4C | 带返回码结束        | AL=返回码                 |                             |
+
+调用DOS中断示例：
+```shell
+$ python main.py ./tests/Interrupt/show_date_time.asm -n
+```
+程序如下：
+```asm86=
+ASSUME CS:CODE,DS:DATA
+
+DATA SEGMENT
+PROMPT1    DB  'Current System Date is : $'
+DATE       DB  '0000-00-00$'      ; date format year:month:day
+PROMPT2    DB  'Current System Time is : $'     
+TIME       DB  '00:00:00$'        ; time format hr:min:sec
+DATA ENDS
+
+CODE SEGMENT
+    MAIN:
+        MOV AX, DATA                ; initialize DS
+        MOV DS, AX
+        ;-------------Print DATE-------------------------
+        LEA BX, DATE                 ; BX=offset address of string DATE
+        CALL GET_DATE                ; call the procedure GET_DATE
+
+        LEA DX, PROMPT1               ; DX=offset address of string PROMPT
+        MOV AH, 09H                  ; print the string PROMPT
+        INT 21H                      
+
+        LEA DX, DATE                 ; DX=offset address of string TIME
+        MOV AH, 09H                  ; print the string TIME
+        INT 21H     
+        ;-------------Print TIME-------------------------
+        LEA BX, TIME                 ; BX=offset address of string TIME
+        CALL GET_TIME                ; call the procedure GET_TIME
+
+        LEA DX, PROMPT2               ; DX=offset address of string PROMPT
+        MOV AH, 09H                  ; print the string PROMPT
+        INT 21H                      
+
+        LEA DX, TIME                 ; DX=offset address of string TIME
+        MOV AH, 09H                  ; print the string TIME
+        INT 21H                      
+
+        MOV AH, 4CH                  ; return control to DOS
+        INT 21H
+
+    ;**************************************************************************;
+    ;------------------------------  GET_TIME  --------------------------------;
+    ;**************************************************************************;
+    GET_TIME:
+        ; this procedure will get the current system time 
+        ; input : BX=offset address of the string TIME
+        ; output : BX=current time
+        PUSH AX                       ; PUSH AX onto the STACK
+        PUSH CX                       ; PUSH CX onto the STACK 
+
+        MOV AH, 2CH                   ; get the current system time
+        INT 21H                       
+
+        MOV AL, CH                    ; set AL=CH , CH=hours
+        CALL CONVERT                  ; call the procedure CONVERT
+        MOV [BX], AX                  ; set [BX]=hr  , [BX] is pointing to hr
+
+        MOV AL, CL                    ; set AL=CL , CL=minutes
+        CALL CONVERT                  ; call the procedure CONVERT
+        MOV [BX+3], AX                ; set [BX+3]=min  , [BX] is pointing to min
+                                                
+        MOV AL, DH                    ; set AL=DH , DH=seconds
+        CALL CONVERT                  ; call the procedure CONVERT
+        MOV [BX+6], AX                ; set [BX+6]=min  , [BX] is pointing to sec
+                                                            
+        POP CX                        ; POP a value from STACK into CX
+        POP AX                        ; POP a value from STACK into AX
+
+        RET                           ; return control to the calling procedure
+
+    ;**************************************************************************;
+    ;------------------------------  GET_DATE  --------------------------------;
+    ;**************************************************************************;
+    GET_DATE:
+    ; this procedure will get the current system time 
+    ; input : BX=offset address of the string TIME
+    ; output : BX=current time
+        PUSH AX                       ; PUSH AX onto the STACK
+        PUSH CX                       ; PUSH CX onto the STACK 
+
+        MOV AH, 2AH                   ; get the current system Date
+        INT 21H                       
+
+        PUSH BX
+        MOV BL,100
+        MOV AX,CX
+        DIV BL
+        MOV CX,AX
+        POP BX
+
+        MOV AL, CH                    ; set AL=CH , CH=Year
+        CALL CONVERT                  ; call the procedure CONVERT
+        MOV [BX], AX                  ; set [BX]=Year  , [BX] is pointing to Year
+
+        MOV AL, CL                    ; set AL=CL , CL=Year
+        CALL CONVERT                  ; call the procedure CONVERT
+        MOV [BX+2], AX                ; set [BX+2]=Year  , [BX] is pointing to Year
+                                                
+        MOV AL, DH                    ; set AL=DH , DH=Month
+        CALL CONVERT                  ; call the procedure CONVERT
+        MOV [BX+5], AX                ; set [BX+5]=Month  , [BX] is pointing to Year
+                                                            
+        MOV AL, DL                    ; set AL=DH , DH=Day
+        CALL CONVERT                  ; call the procedure CONVERT
+        MOV [BX+8], AX                ; set [BX+8]=Day  , [BX] is pointing to Year
+
+        POP CX                        ; POP a value from STACK into CX
+        POP AX                        ; POP a value from STACK into AX
+        RET                           ; return control to the calling procedure
+        
+    ;**************************************************************************;
+    ;-------------------------------  CONVERT  --------------------------------;
+    ;**************************************************************************;
+
+    CONVERT:
+    ; this procedure will convert the given binary code into ASCII code
+    ; input : AL=binary code
+    ; output : AX=ASCII code
+        PUSH DX                       ; PUSH DX onto the STACK 
+        MOV AH, 0                     ; set AH=0
+        MOV DL, 10                    ; set DL=10
+        DIV DL                        ; set AX=AX/DL
+        OR AX, 3030H                  ; convert the binary code in AX into ASCII
+        POP DX                        ; POP a value from STACK into DX 
+        RET                           ; return control to the calling procedure
+
+CODE ENDS
+END MAIN
+
+```
+运行结果如下：
+![](image/date_time.png)
+
+该示例多次调用DOS中断服务，获取系统日期和时间并打印，如需查看中断信息，可在命令行添加`-i`选项。
+
+#### BIOS中断例程 INT 10H
+- INT 10H是显示服务(Video Service)
+- 因基于BIOS测试不便，尚未实现
+
+#### 用户中断例程
+用户可以自行编写中断例程，安装方法有两种：
+1. CPU预加载，需简单更改`isr.py`文件
+2. 运行汇编程序安装，使用MOSB指令（参考《汇编语言》第3版 12.8节代码）
+
+这里提供一个用户中断例程示例`isr7c.asm`，实现将字符串转换为大写，`ds:si`指向字符串首地址：
+```asm86=
+assume cs:code
+
+code segment
+    upper: 
+        push cx
+        push si
+    change:
+        mov cl,[si]
+        mov ch,0
+        jcxz ok
+        and byte ptr [si],11011111b
+        inc si
+        jmp short change
+    ok:
+        pop si
+        pop cx
+        iret
+code ends
+end upper
 ```
 
-示例汇编程序Bubble Sort运行结果截图：
+测试代码如下：
+```asm8086=
+assume cs:code,ds:data
 
-![](image/bubble_sort.png)
+data segment
+    msg db 'abcdefghijklmnopqrstuvwxyz$'
+data ends
+
+code segment
+    start: mov ax,data
+           mov ds,ax
+
+           mov si,0           ;调用upper中断例程，转换为大写
+           int 7ch
+           
+           mov dx,offset msg  ;lea dx,msg
+           mov ah,9 
+           int 21h            ; 调用BIOS中断例程，打印msg
+
+           mov ax,4c00h
+           int 21h
+code ends
+end start
+```
+运行测试方式：
+```shell
+$ python main.py ./tests/Interrupt/int7c_test.asm -n -i
+```
+运行结果：
+![](image/int_7c.png)
+
+可以看到本测试用例进行了3次中断调用：
+1. 中断服务程序`isr7c.asm`将测试程序中的小写字母转换为大写
+2. 中断服务程序`dos_isr_21h`的子程序`09h`打印该字符串
+3. 中断服务程序`dos_isr_21h`的子程序`4ch`带返回值结束
+
+### 中断优先级和嵌套
+- 8086中软中断不能嵌套，硬中断可以嵌套。
+- 本模拟程序中凡调用中断例程均允许嵌套
 
 
 ## 数据通路
@@ -812,11 +1165,6 @@ call ip/reg  -> push ip, jmp ip/reg
 | LOCK | LOCK | lock | 封锁 |
 | WAIT | WAIT | wait | 等待 |
 
-暂不支持中断，只是将以下代码作为返回结束程序：
-```x86asm
-mov ax,4c00h
-int 21h
-```
 
 ## 汇编器与伪指令
 - 每个汇编器都有一套不同的伪指令，我们采用了MASM非简化的伪指令。
@@ -1075,9 +1423,10 @@ int 21H
 
 
 ## 存储器Memory
-### 8086内存地址
-The 1Mb of accessible memory in the 8086 ranges from 00000 to FFFFF.
-8086 has no RAM or ROM inside it. However, it has internal registers for storing intermediate and final results and interfaces with memory located outside it through the System Bus.
+### 8086内存
+- The 1Mb of accessible memory in the 8086 ranges from 00000 to FFFFF.
+- 我们将存储器抽象为长度1M的数组，`0x0-0x399`存放中断向量表，`0x10000-0x1FFFF`存放BIOS、DOS和用户的中断例程，`0x20000-0x7FFFF`为各种段的区域。
+
 | Address | Contents                  |   |
 |---------|---------------------------|---|
 | 00000   | Interrupt Vector Table    |   |
@@ -1092,22 +1441,20 @@ The 1Mb of accessible memory in the 8086 ranges from 00000 to FFFFF.
 | C0000   | Reserved                  |   |
 | F0000   | ROM BIOS                  |   |
 
+- 数组每个位置存放数据或者指令为1字节（Byte），假设所有指令均为1字节，存放在数组一个单元中。
+- 20条外部地址线可寻址这1MB空间，采取了段寻址方式。地址加法器在BIU中：
+
+![地址计算流程图](image/addr_adder.png)
+
 ### 虚拟存储器
 由于8086相当于实模式，没有虚地址保护模式（>=80286），不支持虚拟存储器。
-
-### 存储器抽象
-- 我们将存储器抽象为长度1000的数组，0-199存放中断向量表、DOS、软件BIOS等等，从下标200位置开始加载程序，并设置499为程序存储位置上限，后面存放各种buffer、ROM BIOS等。
-- 数组每个位置存放数据或者指令为1字节（Byte），假设所有指令均为1字节，存放在数组一个单元中。
-    - 20条外部地址线可寻址这1MB空间，采取了段寻址方式。地址加法器在BIU中：
-
-![地址计算流程图](image/addr_adder.png))
 
 ### Cache Memory
 - 值得注意的是，8086不支持 L1 或者 L2 cache memory。但为了更真实地模拟cpu运行，我们将cpu中的一级缓存、二级缓存等抽象为一个cpu类下的指令缓存器：cache memory。
 - 我们假设只有一条cache line（大小为64KB），让cache memory存入已经载入内存中的程序段。
 
 
-## 流水线和时序产生器（时钟，Clock）
+## 流水线和时序产生器（Clock）
 ### 8086流水线模拟
 ![](image/pipeline.png))
 
@@ -1190,9 +1537,8 @@ The EU fetches an opcode from the queue into the instruction register.
   - direction flag(DF)
 
 ## Future Works
-- 中断
+- 代码重构
 - 流水线优化
-- GUI稳定性改进
 
 ## 参考资料
 - 《Intel Software Developer’s Manual》

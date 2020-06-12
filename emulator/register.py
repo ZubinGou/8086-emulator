@@ -130,9 +130,9 @@ class Flag_register(object):
         self.carry = 0      # CY
         self.overflow = 0   # O
         # control flags
-        self.direction = 0  # D unused
-        self.interrupt = 0  # I unused
-        self.trap = 0       # T unused
+        self.direction = 0  # D
+        self.interrupt = 0  # I
+        self.trap = 0       # T
     
     def get_int(self):
         return (self.overflow << 11) + (self.direction << 10) + (self.interrupt << 9) + \

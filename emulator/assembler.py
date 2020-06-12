@@ -18,7 +18,7 @@ def to_int_str(matched):
 
 def to_decimal(num):
     # all kinds of string of num to decimal
-    print(f"converting {num} to decimal")
+    # print(f"converting {num} to decimal")
     if isinstance(num, int):
         return int(num)
     if num.startswith('0x'):
@@ -46,6 +46,7 @@ class Assembler(object):
         self.space = {} # 段空间
         self.seg_adr = {'DS': hex(seg['DS']), 'CS': hex(seg['CS']), 'SS': hex(seg['SS']), 'ES': hex(seg['ES'])}
         self.seg_id = {} # 段名
+        self.seg_len = {} # 段实际长度
         self.tags = {} # 标号
         self.vars = {} # 变量
         self.ip = '0'    # 程序入口offset
@@ -68,17 +69,17 @@ class Assembler(object):
 
         self.__eval_id()
 
-        print()
-        for key, val in self.space.items():
-            print(key,':')
-            pprint(val[:100], compact=True)
-            print()
-        print("seg_id:",self.seg_id)
-        print("\ntags:")
-        pprint(self.tags)
-        print("\nvars:")
-        pprint(self.vars)
-        print("\ninitital ip:", self.ip)
+        # print()
+        # for key, val in self.space.items():
+        #     print(key,':')
+        #     pprint(val[:100], compact=True)
+        #     print()
+        # print("seg_id:",self.seg_id)
+        # print("\ntags:")
+        # pprint(self.tags)
+        # print("\nvars:")
+        # pprint(self.vars)
+        # print("\ninitital ip:", self.ip)
         return self
 
     def __eval_id(self):  #TODO(Zubin) make it simple
@@ -92,7 +93,7 @@ class Assembler(object):
                 if v == val['seg']:
                     seg_name = k
             var_dict[key] = seg_name + ':[' + str(hex(int(val['offset'], 16))) + ']' # 变量解释为“段地址：偏移地址”
-        print("var_dict:", var_dict)
+        # print("var_dict:", var_dict)
         for key, val in self.space.items(): # 遍历每个段
             for i in range(len(self.space[key])): # 遍历每行代码
                 ins = self.space[key][i]
@@ -140,8 +141,9 @@ class Assembler(object):
         for i in range(ip+1, len(instructions)):
             ins = instructions[i]
             for j in range(len(ins)):
-                ins[j] = ins[j].replace('$', hex(seg_ip))
-            ins_ori = self.ins_origin[i].replace('$', hex(seg_ip))
+                if ins[j] == '$':
+                    ins[j] == str(hex(seg_ip))
+            ins_ori = self.ins_origin[i]
             if ins[0] == 'ORG':
                 seg_ip = to_decimal(ins[1])
             elif ins[0] == 'EVEN': # 下面的内存变量从下一个偶地址单元开始分配
@@ -152,6 +154,7 @@ class Assembler(object):
                 seg_ip += (-seg_ip) % num 
             elif ins[0] == seg_tmp:
                 assert ins[1] == 'ENDS', "Compile Error: segment ends fault"
+                self.seg_len[seg_name] = seg_ip
                 return i + 1
 
             elif ':' in ins[0]: # 数据标号
@@ -191,8 +194,7 @@ class Assembler(object):
         var = ins[0]
         var_ori = ins_ori.split()[0]
         byte_list = []
-        print("var:", var)
-        print("var_ori:", var_ori)
+
         if len(ins) > 2 and ins[2][:3] == 'DUP': # db Imm dup ()
             times = to_decimal(ins[1])
             idx = ins_ori.find('(')

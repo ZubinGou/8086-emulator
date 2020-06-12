@@ -17,6 +17,7 @@ from emulator.memory import Memory
 from emulator.pipeline_units import bus_interface_unit, execution_unit
 from emulator.cpu import CPU
 
+
 INSTRUCTION_QUEUE_SIZE = 6
 MEMORY_SIZE = int('FFFFF', 16)  # 内存空间大小 1MB
 CACHE_SIZE = int('10000', 16)  # 缓存大小 64KB
@@ -47,25 +48,26 @@ class MainWindow(object):
         self.memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
         self.asmEdit.setPlainText(open(_resource('default.asm')).read())
 
-        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.assembler, self.memory, self.console)
-        self.EU = execution_unit.execution_unit(self.BIU, self.console)
-        self.cpu = CPU(self.BIU, self.EU, self.console)
-        
-        
+        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.assembler, self.memory)
+        self.EU = execution_unit.execution_unit(self.BIU, int_msg=True)
+        self.cpu = CPU(self.BIU, self.EU, gui_mode=True)
+
         self.emitter = Emitter(self.emitStart)
         self.emitter.refresh.connect(self.refreshModels)
-        # qApp.lastWindowClosed.connect(self.stopAndWait)
         self.setupEditorAndDiagram()
         self.setupSplitters()
         self.setupModels()
         self.setupTrees()
         self.setupActions()
+        self.gui.showMaximized()
 
     def setupEditorAndDiagram(self):
         # self.asmEdit = QPlainTextEdit()
         self.asmEdit.setFocus()
         self.asmEdit.setStyleSheet("""QPlainTextEdit{
-            font-family:'Consolas'; 
+            font-family: 'Hack NF'; 
+            font-weight: bold;
+            font-size: 11pt;
             color: #ccc; 
             background-color: #282828;}""")
         self.highlight = AssemblyHighlighter(self.asmEdit.document())
@@ -73,15 +75,16 @@ class MainWindow(object):
 
     def setupSplitters(self):
         mainsplitter = self.gui.findChild(QSplitter, "mainsplitter")
-        mainsplitter.setStretchFactor(0, 5)
-        mainsplitter.setStretchFactor(1, 12)
-        mainsplitter.setStretchFactor(2, 4)
+        mainsplitter.setStretchFactor(0, 3)
+        mainsplitter.setStretchFactor(1, 3)
+        mainsplitter.setStretchFactor(2, 16)
         mainsplitter.setStretchFactor(3, 4)
+        mainsplitter.setStretchFactor(4, 3)
 
         leftsplitter = self.gui.findChild(QSplitter, "leftsplitter")
-        leftsplitter.setStretchFactor(0, 5)
-        leftsplitter.setStretchFactor(1, 4)
-        leftsplitter.setStretchFactor(2, 4)
+        leftsplitter.setStretchFactor(0, 8)
+        leftsplitter.setStretchFactor(1, 5)
+        leftsplitter.setStretchFactor(2, 9)
 
         middlesplitter = self.gui.findChild(QSplitter, "middlesplitter")
         middlesplitter.setStretchFactor(0, 2)
@@ -140,23 +143,29 @@ class MainWindow(object):
         treeMemory3.resizeColumnToContents(1)
 
     def setupActions(self):
+        self.actionNew = self.gui.findChild(QAction, "actionNew")
+        self.actionNew.triggered.connect(self.newAction)
+
+        self.actionOpen = self.gui.findChild(QAction, "actionOpen")
+        self.actionOpen.triggered.connect(self.openAction)
+
+        self.actionSave = self.gui.findChild(QAction, "actionSave")
+        self.actionSave.triggered.connect(self.saveAction)
+
         self.actionLoad = self.gui.findChild(QAction, "actionLoad")
         self.actionLoad.triggered.connect(self.loadAssembly)
 
         self.actionRun = self.gui.findChild(QAction, "actionRun")
         self.actionRun.triggered.connect(self.runAction)
 
+        self.actionPause = self.gui.findChild(QAction, "actionPause")
+        self.actionPause.triggered.connect(self.pauseAction)
+        
         self.actionStep = self.gui.findChild(QAction, "actionStep")
         self.actionStep.triggered.connect(self.nextInstruction)
 
         self.actionStop = self.gui.findChild(QAction, "actionStop")
         self.actionStop.triggered.connect(self.stopAction)
-
-        self.actionOpen = self.gui.findChild(QAction, "actionOpen")
-        self.actionOpen.triggered.connect(self.openAction)
-
-        self.actionPause = self.gui.findChild(QAction, "actionPause")
-        self.actionPause.triggered.connect(self.pauseAction)
 
     def loadAssembly(self):
         # Enable/Disable actions
@@ -175,10 +184,11 @@ class MainWindow(object):
             return
         self.assembler = Assembler(SEG_INIT)
         self.exe_file = self.assembler.compile(assembly)
+        self.memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
         self.memory.load(self.exe_file)  # load code segment
-        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory, self.console)
-        self.EU = execution_unit.execution_unit(self.BIU, self.console)
-        self.cpu = CPU(self.BIU, self.EU, self.console)
+        self.BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, self.exe_file, self.memory)
+        self.EU = execution_unit.execution_unit(self.BIU, True)
+        self.cpu = CPU(self.BIU, self.EU, gui_mode=True)
         self.refreshModels()
 
         self.console.appendPlainText("Initial DS: " + hex(self.BIU.reg['DS']))
@@ -186,44 +196,21 @@ class MainWindow(object):
         self.console.appendPlainText("Initial SS: " + hex(self.BIU.reg['SS']))
         self.console.appendPlainText("Initial ES: " + hex(self.BIU.reg['ES']))
         self.console.appendPlainText("Initial IP: " + hex(self.BIU.reg['IP']))
-        self.console.appendPlainText("CPU initialized successfully.\n")
-
-    def emitStart(self, refresh):
-        self.cpu.EU.interrupt = False
-        while not self.cpu.check_done():
-            self.cpu.iterate(debug=False)
-            refresh.emit()
-            time.sleep(0.1)
-        self.cpu.print_end_state()
-
-    def runAction(self):
-        self.actionRun.setEnabled(False)
-        self.actionStep.setEnabled(False)        
-        self.emitter.start()
-
-    def nextInstruction(self):
-        self.cpu.EU.interrupt = False
-        if not self.cpu.check_done():
-            self.cpu.iterate(debug=False)
-            self.refreshModels()
-        else:
-            self.cpu.print_end_state()
-            self.stopAction()
-
-    def pauseAction(self):
-        self.cpu.EU.interrupt = True
-        self.actionRun.setEnabled(True)
-        self.actionStep.setEnabled(True)
-
-    # def stopAndWait(self):
-    #     # Stop correctly
-    #     self.cpu.EU.interrupt = True
-        
-    #     return
-
-    def stopAction(self):
-        self.pauseAction()
+        self.console.appendPlainText("\nCPU initialized successfully.")
+        self.console.appendPlainText("=" * 60 + '\n')
+    
+    def newAction(self):
+        self.stopAction()
+        self.asmEdit.setPlainText('\n'*30)
         self.restoreEditor()
+
+    def saveAction(self):
+        self.stopAction()
+        filename = QFileDialog().getSaveFileName(self.gui, 'Save file', filter='*.asm', initialFilter='*.asm')[0]
+        if os.path.exists(filename):
+            with open(filename,'w') as f:
+                text=self.asmEdit.toPlainText()
+                f.write(text)
 
     def openAction(self):
         self.stopAction()
@@ -237,8 +224,57 @@ class MainWindow(object):
                 QMessageBox.Cancel)
             if answer == QMessageBox.Cancel:
                 return
+        if os.path.exists(filename):
+            text = open(filename, encoding='utf-8').read()
+            if len(text.split('\n')) < 30:
+                text += '\n' * (30-len(text.split('\n')))
+            self.asmEdit.setPlainText(text)
+            self.restoreEditor()
 
-        self.asmEdit.setPlainText(open(filename, encoding='utf-8').read())
+    def emitStart(self, refresh):
+        self.cpu.EU.interrupt = False
+        while not self.cpu.check_done():
+            self.cpu.iterate(debug=False)
+            refresh.emit()
+            time.sleep(0.1)
+        print("Emit ended")
+        self.actionRun.setEnabled(True)
+        self.actionStep.setEnabled(True)
+        self.cpu.print_end_state()
+        refresh.emit()
+        if self.cpu.EU.shutdown:
+            self.cpu.EU.print("CPU Shutdown.")
+            self.actionLoad.setEnabled(True)
+            self.actionRun.setEnabled(False)
+            self.actionPause.setEnabled(False)
+            self.actionStep.setEnabled(False)
+            self.actionStop.setEnabled(True)
+
+    def runAction(self):
+        print("run...")
+        self.actionRun.setEnabled(False)
+        self.actionStep.setEnabled(False)        
+        self.emitter.start()
+
+    def nextInstruction(self):
+        print("step...")
+        self.cpu.EU.interrupt = False
+        if not self.cpu.check_done():
+            self.cpu.iterate(debug=False)
+            self.refreshModels()
+
+        if self.cpu.EU.shutdown:
+            self.cpu.print_end_state()
+            self.restoreEditor()
+        print("step end")
+
+    def pauseAction(self):
+        self.cpu.EU.interrupt = True
+        self.actionRun.setEnabled(True)
+        self.actionStep.setEnabled(True)
+
+    def stopAction(self):
+        self.pauseAction()
         self.restoreEditor()
 
     def restoreEditor(self):
@@ -251,9 +287,11 @@ class MainWindow(object):
         # Re-enable editor
         self.asmEdit.setReadOnly(False)
         self.asmEdit.setFocus()
-        self.refreshModels()
 
     def refreshModels(self):
+        self.console.moveCursor(self.console.textCursor().End)
+        self.console.insertPlainText(self.cpu.EU.output)
+        self.cpu.EU.output = ''
         self.setupModels()
         self.setupTrees()
 

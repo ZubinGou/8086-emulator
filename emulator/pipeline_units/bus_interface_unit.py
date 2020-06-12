@@ -5,7 +5,7 @@ import pprint
 
 class bus_interface_unit(object):
 
-    def __init__(self, instruction_queue_size, exe, memory, console):
+    def __init__(self, instruction_queue_size, exe, memory):
         # 预取指令队列
         self.instruction_queue = queue.Queue(instruction_queue_size) # Prefetch input queue
         
@@ -18,11 +18,11 @@ class bus_interface_unit(object):
         }
         self.pre_fetch_ip = self.reg['IP']
 
-        print("Initial DS:", hex(self.reg['DS']))
-        print("Initial CS:", hex(self.reg['CS']))
-        print("Initial SS:", hex(self.reg['SS']))
-        print("Initial ES:", hex(self.reg['ES']))
-        print("Initial IP:", hex(self.reg['IP']))
+        # print("Initial DS:", hex(self.reg['DS']))
+        # print("Initial CS:", hex(self.reg['CS']))
+        # print("Initial SS:", hex(self.reg['SS']))
+        # print("Initial ES:", hex(self.reg['ES']))
+        # print("Initial IP:", hex(self.reg['IP']))
         
         self.memory = memory # External bus to memory
 

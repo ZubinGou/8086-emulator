@@ -1,50 +1,45 @@
 import time
 import re
 from pprint import pprint
-from emulator.assembler import Assembler
+from emulator.assembler import Assembler, to_decimal
 
 class CPU(object):
     
-    def __init__(self, BIU, EU, console):
+    def __init__(self, BIU, EU, gui_mode):
         self.cycle_count = 0
         self.BIU = BIU
         self.EU = EU
-
-        self.console = console
+        self.gui_mode = gui_mode
 
     def iterate(self, debug=False):
         self.cycle_count += 1
         if debug:
-            print(f"clock cycle {self.cycle_count}: fetching...")
-
-            if self.console:
-                self.console.appendPlainText(f"clock cycle {self.cycle_count}: fetching...")
+            self.EU.print(f"clock cycle {self.cycle_count}: fetching...\n")
 
         self.fetch_cycle()
 
         self.cycle_count += 1
         if debug:
-            print(f"clock cycle {self.cycle_count}: executing...")
-
-            if self.console:
-                self.console.appendPlainText(f"clock cycle {self.cycle_count}: executing...")
+            print(f"clock cycle {self.cycle_count}: executing...\n")
 
         self.execute_cycle()
 
-        if debug:
+        if (debug or self.EU.interrupt):
             self.print_state()
-            self.debug()
+            if not self.gui_mode :
+                self.debug()
+                self.EU.interrupt = False
 
     def debug(self):
         while True:
-            cmd = input("Press Enter to continue...\n-").strip()
+            cmd = input("Press Enter to continue...\n> ").strip()
             if not cmd:
                 return
             cmd = cmd.upper().split()
             if cmd[0] == 'A': # input and run the code (simple code)
                 asm_code = input("Run code > ")
                 ins = [s for s in re.split(" |,", asm_code.strip().upper()) if s]
-                print(ins)
+                self.EU.print(ins)
                 self.EU.opcode = ins[0]
                 if len(ins) > 1:
                     self.EU.opd = ins[1:]
@@ -57,8 +52,8 @@ class CPU(object):
                     adr1 = self.EU.get_int(cmd[1])
                     self.show_memory(adr1, adr1 + 50)
                 elif len(cmd) == 3:
-                    adr1 = self.EU.get_address(cmd[1])
-                    adr2 = self.EU.get_address(cmd[2])
+                    adr1 = to_decimal(cmd[1])
+                    adr2 = to_decimal(cmd[2])
                     self.show_memory(adr1, adr2)
 
             elif cmd[0] == 'R': # show registers
@@ -78,7 +73,7 @@ class CPU(object):
     
     def check_done(self):
         # 检查是否无指令，结束cpu运行
-        if self.EU.interrupt:
+        if self.EU.interrupt or self.EU.shutdown:
             return True
         return  self.BIU.instruction_queue.empty() and \
                 not self.BIU.remain_instruction()
@@ -123,9 +118,5 @@ class CPU(object):
     
     def print_end_state(self):
         # 打印结束状态
-        print("Clock ended")
-        print(f"CPU ran a total of {self.cycle_count} clock cycles")
-
-        if self.console:
-            self.console.appendPlainText("Clock ended")
-            self.console.appendPlainText(f"CPU ran a total of {self.cycle_count} clock cycles")
+        self.EU.print("Clock ended\n")
+        self.EU.print(f"CPU ran a total of {self.cycle_count} clock cycles\n")

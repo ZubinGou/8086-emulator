@@ -1,5 +1,7 @@
 import sys
 from emulator.assembler import Assembler
+from emulator.isr import load_isr
+
 
 class Memory(object):
 
@@ -25,6 +27,7 @@ class Memory(object):
         # content is a list
         self.verify(loc)
         self.space[loc] = content
+        
     def load(self, exe):
         # 加载器
         self.refresh()
@@ -34,10 +37,12 @@ class Memory(object):
             print(hex(adr))
             self.space[adr: adr + self.seg_size] = val
             print(self.space[adr:adr+100])
-
+        # 加载中断向量表和中断例程
+        load_isr(self)
         print("successfully loaded!")
         print()
 
+        
     def refresh(self):
         self.space = [['0']] * self.max_space
 

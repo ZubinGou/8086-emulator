@@ -9,7 +9,7 @@ DATA SEGMENT
     DATA3 DB AH    ;3
     DATA4 DW 0H    ;4
     DATA5 DW 2345H,6789;ARRAY
-    db 'abcdefg hello world!'
+    db 'abcdefg hello world!$'
 DATA ENDS 
 
 ;DIFFERENT DATA IN DATA SEGMENT 

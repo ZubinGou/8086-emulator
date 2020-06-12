@@ -1,10 +1,12 @@
 import re
 import sys
 import queue
+import getopt
 from emulator.assembler import Assembler
 from emulator.memory import Memory
 from emulator.pipeline_units import bus_interface_unit, execution_unit
 from emulator.cpu import CPU
+
 
 INSTRUCTION_QUEUE_SIZE = 6
 MEMORY_SIZE = int('FFFFF', 16)  # 内存空间大小 1MB
@@ -22,36 +24,40 @@ SEG_INIT = {
 def main():
     help = '''
     Usage:
-    python main.py ./emulator/tests/Requirement/bubble_sort.asm
-    python main.py ./emulator/tests/Requirement/bubble_sort.asm nodebug
-    注：tests文件夹内含有大量测试用例
-    可以参考 README.md 中支持的汇编语言自己编写程序来运行。
+    python main.py ./tests/Requirement/bubble_sort.asm -i
+    python main.py ./tests/Interrupt/show_date_time.asm -n
+    注：-i表示打印中断信息，-n表示禁用debug。tests文件夹内含有大量测试用例
+    可以参考文档，自行编写汇编语言程序来运行。
     '''
 
-    if len(sys.argv) < 2:
+    DEBUG = True  # 是否单步运行
+    INT_MSG = False  # 是否打印中断信息
+    try:
+        opts,args = getopt.getopt(sys.argv[2:],'-h-n-i',['help','nodebug','interrupt'])
+        for opt_name,opt_value in opts:
+            if opt_name in ('-h','--help'):
+                print(help)
+                exit()
+            if opt_name in ('-n', '--nodebug'):
+                DEBUG = False
+            if opt_name in ('-i', '--interrupt'):
+                INT_MSG = True
+        with open(sys.argv[1], 'r', encoding='utf-8') as file:
+            asm_code = file.read()
+    except:
         print(help)
         sys.exit("Parameter incorrect")
-    
-    if len(sys.argv) > 2 and sys.argv[2] == 'nodebug':
-        DEBUG = False
-    else:
-        DEBUG = True
-
-    with open(sys.argv[1], 'r', encoding='utf-8') as file:
-        asm_code = file.read()
+   
     assembler = Assembler(SEG_INIT)
     exe_file = assembler.compile(asm_code)
     memory = Memory(MEMORY_SIZE, SEGMENT_SIZE)
     memory.load(exe_file) # load code segment
 
-    # cache = Cache_memory(CACHE_SIZE)
-    # cache.space = memory.space[reg.CS:(reg.CS+SEGMENT_SIZE)]
-
-    BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, exe_file, memory, None)
-    EU = execution_unit.execution_unit(BIU, None)
-
-    cpu = CPU(BIU, EU, None)
+    BIU = bus_interface_unit.bus_interface_unit(INSTRUCTION_QUEUE_SIZE, exe_file, memory)
+    EU = execution_unit.execution_unit(BIU, INT_MSG)
+    cpu = CPU(BIU, EU, gui_mode=False)
     print("\nCPU initialized successfully.")
+    print("=" * 80)
 
     while not cpu.check_done():
         cpu.iterate(debug=DEBUG)

@@ -3,7 +3,7 @@
 NAME Comprehensive
 TITLE fact
 
-ASSUME CS:CODE
+ASSUME CS:CODE, SS:stack
 
 stack SEGMENT
     dw 8 dup (0)

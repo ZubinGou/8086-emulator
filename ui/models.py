@@ -46,7 +46,7 @@ class CodeSegModel(DataModel):
 
     def data(self, index, role):
         if role == Qt.BackgroundRole and self.ip >= 0 and index.row() == self.ip:
-            return QBrush(QColor("#C6DBAE"))
+            return QBrush(QColor("#6a4791"))
 
         return super(CodeSegModel, self).data(index, role)
 
@@ -63,7 +63,7 @@ class StackSegModel(DataModel):
     def data(self, index, role):
         if role == Qt.BackgroundRole and self.sp >= 0 \
             and index.row() == (0x10000 - self.sp) % 0x10000:
-            return QBrush(QColor("#EDE7AE"))
+            return QBrush(QColor("#53917f"))
 
         return super(StackSegModel, self).data(index, role)
 
