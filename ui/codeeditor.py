@@ -30,33 +30,27 @@ class CodeEditor(QPlainTextEdit):
                 QColor("#000000"))
 
     def lineNumberAreaPaintEvent(self, event):
-        painter = QPainter(self.lineNumberArea)
-        # painter.fillRect(event.rect(), self.palette().color(QPalette.Window))
-        painter.setPen(QColor("#808080"))
-        font = painter.font()
-        font.setBold(True) 
-        painter.setFont(font)
+    	painter = QPainter(self.lineNumberArea)
+    	painter.setPen(QColor("#808080"))
+    	font = painter.font()
+    	font.setBold(True) 
+    	painter.setFont(font)
 
-        block = self.firstVisibleBlock()
-        blockNumber = block.blockNumber() + 1
-        top = self.blockBoundingGeometry(block)\
-                .translated(self.contentOffset()).top()
-        bottom = top + self.blockBoundingRect(block).height()
+    	block = self.firstVisibleBlock()
+    	blockNumber = block.blockNumber() + 1
+    	top = int(self.blockBoundingGeometry(block).translated(self.contentOffset()).top())
+    	areaWidth = self.lineNumberArea.width()
+    	rightMargin = self.lineNumberArea.RIGHT_MARGIN
 
-        areaWidth = self.lineNumberArea.width()
-        rightMargin = self.lineNumberArea.RIGHT_MARGIN
+    	while block.isValid() and top <= event.rect().bottom():
+        	if block.isVisible():
+            		number = str(blockNumber)
+            		painter.drawText(0, top, areaWidth - rightMargin, self.fontMetrics().height(), Qt.AlignRight, number)
 
-        while block.isValid() and top <= event.rect().bottom():
-            if block.isVisible() and bottom >= event.rect().top():
-                number = str(blockNumber)
-                painter.drawText(0, top, areaWidth - rightMargin,
-                        self.fontMetrics().height(), Qt.AlignRight, number)
-
-            block = block.next()
-            top = bottom
-            bottom = top + self.blockBoundingRect(block).height()
-            blockNumber += 1
-
+        	block = block.next()
+        	top = int(top + self.blockBoundingRect(block).height())
+        	blockNumber += 1
+            
     def lineNumberAreaWidth(self):
         digits = 1
         maxdigs = max(1, self.blockCount())
